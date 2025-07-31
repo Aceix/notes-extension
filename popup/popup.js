@@ -114,19 +114,37 @@ class NotesManager {
 
     // Event delegation for dynamically created note buttons
     document.getElementById("notesList").addEventListener("click", (e) => {
-      if (e.target.matches('.btn[data-id^="edit-"]')) {
-        const noteId = parseInt(e.target.dataset.id.replace("edit-", ""));
+      // Handle edit button click
+      if (e.target.closest(".edit-btn")) {
+        const editBtn = e.target.closest(".edit-btn");
+        const noteId = parseInt(editBtn.dataset.id.replace("edit-", ""));
         this.editNote(noteId);
-      } else if (e.target.matches('.btn[data-id^="delete-"]')) {
-        const noteId = parseInt(e.target.dataset.id.replace("delete-", ""));
+      }
+      // Handle delete button click
+      else if (e.target.closest(".delete-btn")) {
+        const deleteBtn = e.target.closest(".delete-btn");
+        const noteId = parseInt(deleteBtn.dataset.id.replace("delete-", ""));
         this.deleteNote(noteId);
+      }
+      // Handle note item click for editing (but not when clicking action buttons)
+      else if (
+        e.target.closest(".note-item") &&
+        !e.target.closest(".note-actions")
+      ) {
+        const noteItem = e.target.closest(".note-item");
+        const noteId = parseInt(noteItem.dataset.id);
+        this.editNote(noteId);
       }
     });
 
     // Event delegation for project delete buttons
     document.getElementById("projectsList").addEventListener("click", (e) => {
-      if (e.target.matches(".btn[data-project]")) {
-        const projectName = e.target.dataset.project;
+      if (
+        e.target.closest(".delete-btn") &&
+        e.target.closest(".project-card")
+      ) {
+        const deleteBtn = e.target.closest(".delete-btn");
+        const projectName = deleteBtn.dataset.project;
         this.deleteProject(projectName);
       }
     });
@@ -548,31 +566,35 @@ class NotesManager {
     notesList.innerHTML = filteredNotes
       .map(
         (note) => `
-      <div class="note-item">
+      <div class="note-item" data-id="${note.id}">
         <div class="note-content">${this.escapeHtml(note.content)}</div>
-        ${
-          note.projects?.length > 0
-            ? `
-          <div class="note-projects">
-            ${note.projects
-              .map(
-                (project) =>
-                  `<span class="project">${this.escapeHtml(project)}</span>`
-              )
-              .join("")}
+        <div class="note-footer">
+          <div class="note-project">
+            ${
+              note.projects?.length > 0
+                ? this.escapeHtml(note.projects[0])
+                : "No project"
+            }
           </div>
-        `
-            : ""
-        }
-        <div class="note-meta">
-          <span class="note-date">${this.formatDate(note.createdAt)}</span>
           <div class="note-actions">
-            <button class="btn btn-secondary" data-id="edit-${
+            <button class="edit-btn" data-id="edit-${
               note.id
-            }">Edit</button>
-            <button class="btn btn-danger" data-id="delete-${
+            }" title="Edit note">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="m18,2 3,3v0l-9.5,9.5 -3,3h-3v-3l3,-3L18,2z"></path>
+                <path d="m15,5 3,3"></path>
+              </svg>
+            </button>
+            <button class="delete-btn" data-id="delete-${
               note.id
-            }">Delete</button>
+            }" title="Delete note">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="3,6 5,6 21,6"></polyline>
+                <path d="m19,6v14a2,2 0 0,1 -2,2H7a2,2 0 0,1 -2,-2V6m3,0V4a2,2 0 0,1 2,-2h4a2,2 0 0,1 2,2v2"></path>
+                <line x1="10" y1="11" x2="10" y2="17"></line>
+                <line x1="14" y1="11" x2="14" y2="17"></line>
+              </svg>
+            </button>
           </div>
         </div>
       </div>
@@ -608,16 +630,27 @@ class NotesManager {
     projectsList.innerHTML = sortedProjects
       .map(
         (project) => `
-      <div class="project-item">
-        <div class="project-info">
-          <span class="project-name">${this.escapeHtml(project)}</span>
-          <span class="project-count">${
-            projectCounts[project] || 0
-          } notes</span>
+      <div class="project-card" data-project="${this.escapeHtml(project)}">
+        <div class="project-content">
+          <div class="project-name">${this.escapeHtml(project)}</div>
+          <div class="project-stats">${
+            projectCounts[project] === 1
+              ? "1 note"
+              : `${projectCounts[project] || 0} notes`
+          }</div>
         </div>
-        <button class="btn btn-danger" data-project="${this.escapeHtml(
-          project
-        )}">Delete</button>
+        <div class="project-actions">
+          <button class="delete-btn" data-project="${this.escapeHtml(
+            project
+          )}" title="Delete project">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="3,6 5,6 21,6"></polyline>
+              <path d="m19,6v14a2,2 0 0,1 -2,2H7a2,2 0 0,1 -2,-2V6m3,0V4a2,2 0 0,1 2,-2h4a2,2 0 0,1 2,2v2"></path>
+              <line x1="10" y1="11" x2="10" y2="17"></line>
+              <line x1="14" y1="11" x2="14" y2="17"></line>
+            </svg>
+          </button>
+        </div>
       </div>
     `
       )
