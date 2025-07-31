@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quick Notes</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+
+<body>
+  <div class="container">
+    <!-- Header -->
+    <header class="header">
+      <img src="logo.svg" alt="Quick Notes Logo" class="logo">
+      <div class="beta-label">BETA</div>
+      <button id="new-note-btn">&plus;</button>
+    </header>
+
+    <!-- Navigation -->
+    <nav class="nav-buttons">
+      <button id="notesTab" class="nav-btn">Notes</button>
+      <button id="projectsTab" class="nav-btn">Projects</button>
+    </nav>
+
+    <!-- Notes Screen -->
+    <div id="notesScreen" class="screen active">
+      <!-- Add Note View (initially visible) -->
+      <div id="addNoteView" class="view active">
+        <div class="add-note-section">
+          <textarea id="noteInput" placeholder="Start typing..." rows="8"></textarea>
+          <div class="note-controls">
+            <button id="saveNoteBtn" class="btn btn-primary">Save note</button>
+            <button id="addProjectBtn" class="btn btn-secondary">+ Save to a project</button>
+          </div>
+
+          <!-- Project/Tag Input (initially hidden) -->
+          <div id="projectInputSection" class="project-input-section" style="display: none;">
+            <div class="project-input-container">
+              <input type="text" id="projectInput" placeholder="Type project name..." autocomplete="off">
+              <div id="projectAutocomplete" class="autocomplete-dropdown"></div>
+            </div>
+            <div class="project-input-actions">
+              <button id="confirmProject" class="btn btn-primary btn-small">Add</button>
+              <button id="cancelProject" class="btn btn-secondary btn-small">Cancel</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Notes List View (initially hidden) -->
+      <div id="notesListView" class="view">
+        <!-- Search and Filter -->
+        <div class="search-section">
+          <input type="text" id="searchInput" placeholder="Search notes...">
+          <select id="projectFilter">
+            <option value="">All projects</option>
+          </select>
+        </div>
+
+        <!-- Notes List -->
+        <div id="notesList" class="notes-list">
+          <!-- Notes will be populated here -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Projects Screen -->
+    <div id="projectsScreen" class="screen">
+      <div class="projects-header">
+        <h2>Manage Projects</h2>
+        <button id="refreshProjects" class="btn btn-secondary">Refresh</button>
+      </div>
+      <div id="projectsList" class="projects-list">
+        <!-- Projects will be populated here -->
+      </div>
+    </div>
+
+    <!-- Footer with attribution -->
+    <footer class="footer">
+      <span class="attribution">By F-Smart</span>
+    </footer>
+
+    <!-- Edit Note Modal -->
+    <div id="editModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>Edit Note</h3>
+          <span class="close">&times;</span>
+        </div>
+        <div class="modal-body">
+          <textarea id="editNoteText" rows="6"></textarea>
+          <input type="text" id="editNoteProjects" placeholder="Projects (comma-separated)">
+        </div>
+        <div class="modal-footer">
+          <button id="updateNote" class="btn btn-primary">Update</button>
+          <button id="cancelEdit" class="btn btn-secondary">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="popup.js" defer></script>
+</body>
+
+</html>

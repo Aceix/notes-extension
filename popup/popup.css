@@ -1,0 +1,602 @@
+/* Global Styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 14px;
+  color: #333;
+  background: #f8f9fa;
+}
+
+.container {
+  width: 400px;
+  min-height: 500px;
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+/* Header */
+.header {
+  /* background: #4285f4; */
+  /* color: white; */
+  /* text-align: center; */
+
+  background: linear-gradient(90deg, rgba(177, 111, 70, 1), rgba(75, 30, 58, 1));
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  height: 80px;
+}
+
+.header .beta-label {
+  background: rgba(245, 247, 250, 1);
+  height: 40px;
+  color: black;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 12px;
+}
+
+.header #new-note-btn {
+  margin-left: auto;
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  border-radius: 8px;
+  color: white;
+  height: 40px;
+  width: 40px;
+  font-size: x-large;
+}
+
+.header h1 {
+  font-size: 18px;
+  margin-bottom: 12px;
+  font-weight: 600;
+}
+
+.nav-buttons {
+  display: flex;
+  gap: 8px;
+  justify-content: start;
+  align-items: center;
+  margin-top: 16px;
+  margin-inline-start: 16px;
+  margin-inline-end: 16px;
+}
+
+.nav-btn {
+  /* background: rgba(255, 255, 255, 0.2); */
+  background: white;
+  color: black;
+  border: 1px solid rgba(225, 228, 234, 1);
+  border-radius: 12px;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-size: small;
+  font-weight: bolder;
+  transition: all 0.2s ease;
+}
+
+.nav-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.nav-btn.active {
+  /* background: white; */
+  color: #4285f4;
+  border-color: #4285f4;
+}
+
+/* Screens */
+.screen {
+  display: none;
+  height: calc(100vh - 170px); /* Account for header, nav, footer */
+  overflow: hidden;
+}
+
+.screen.active {
+  display: block;
+}
+
+#projectsScreen {
+  padding: 16px;
+}
+
+/* Views within screens */
+.view {
+  display: none;
+  height: 100%;
+  padding: 16px;
+  overflow-y: auto;
+}
+
+.view.active {
+  display: flex;
+  flex-direction: column;
+}
+
+.add-note-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  /* margin-bottom: 20px; */
+  /* padding: 16px; */
+  /* border: 1px solid #e0e0e0; */
+  /* border-radius: 8px; */
+  /* background: #fafafa; */
+}
+
+#noteInput {
+  flex: 1;
+  width: 100%;
+  background: rgba(245, 247, 250, 1);
+  /* border: 1px solid #ddd; */
+  border: none;
+  border-radius: 16px;
+  padding: 12px;
+  font-size: large;
+  resize: none;
+  margin-bottom: 10px;
+  min-height: 200px;
+}
+
+#noteInput:focus {
+  outline: none;
+  border-color: #4285f4;
+  box-shadow: 0 0 0 2px rgba(66, 133, 244, 0.2);
+}
+
+.note-controls {
+  display: flex;
+  gap: 8px;
+  justify-content: end;
+  align-items: center;
+}
+
+.note-controls .btn {
+  height: 40px;
+}
+
+#saveNoteBtn {
+  background: linear-gradient(90deg, rgba(177, 111, 70, 1), rgba(75, 30, 58, 1));
+  color: white;
+}
+
+#tagInput {
+  flex: 1;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+#tagInput:focus {
+  outline: none;
+  border-color: #4285f4;
+}
+
+/* Buttons */
+.btn {
+  padding: 8px 16px;
+  /* border: none; */
+  border: 1px solid rgba(225, 228, 234, 1);
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: normal;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.btn-primary {
+  background: #4285f4;
+  color: white;
+}
+
+.btn-primary:hover {
+  background: #3367d6;
+}
+
+.btn-secondary {
+  background: white;
+  color: black;
+}
+
+.btn-secondary:hover {
+  background: #5a6268;
+}
+
+.btn-danger {
+  background: #dc3545;
+  color: white;
+}
+
+.btn-danger:hover {
+  background: #c82333;
+}
+
+/* Search Section */
+.search-section {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+#searchInput {
+  flex: 1;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+#tagFilter {
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 12px;
+  background: white;
+}
+
+/* Notes List */
+.notes-list {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.note-item {
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  padding: 12px;
+  margin-bottom: 8px;
+  transition: all 0.2s ease;
+}
+
+.note-item:hover {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.note-content {
+  margin-bottom: 8px;
+  line-height: 1.4;
+  word-wrap: break-word;
+}
+
+.note-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  color: #666;
+}
+
+.note-date {
+  font-size: 10px;
+}
+
+.note-projects {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  margin: 8px 0;
+}
+
+.project {
+  background: #e3f2fd;
+  color: #1976d2;
+  padding: 2px 6px;
+  border-radius: 12px;
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.note-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.note-actions button {
+  padding: 4px 8px;
+  font-size: 10px;
+  border-radius: 3px;
+}
+
+/* Projects Screen */
+.projects-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.projects-header h2 {
+  font-size: 16px;
+  color: #333;
+}
+
+.projects-list {
+  max-height: 350px;
+  overflow-y: auto;
+}
+
+.project-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  margin-bottom: 8px;
+  background: white;
+}
+
+.project-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.project-name {
+  font-weight: 500;
+  color: #1976d2;
+}
+
+.project-count {
+  background: #f0f0f0;
+  color: #666;
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-size: 10px;
+}
+
+/* Modal */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal.active {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 400px;
+  max-height: 80%;
+  overflow: hidden;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  border-bottom: 1px solid #e0e0e0;
+  background: #f8f9fa;
+}
+
+.modal-header h3 {
+  font-size: 16px;
+  margin: 0;
+}
+
+.close {
+  font-size: 24px;
+  font-weight: bold;
+  cursor: pointer;
+  color: #666;
+}
+
+.close:hover {
+  color: #333;
+}
+
+.modal-body {
+  padding: 16px;
+}
+
+.modal-body textarea,
+.modal-body input {
+  width: 100%;
+  margin-bottom: 12px;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-family: inherit;
+}
+
+.modal-body textarea:focus,
+.modal-body input:focus {
+  outline: none;
+  border-color: #4285f4;
+}
+
+.modal-footer {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  padding: 16px;
+  border-top: 1px solid #e0e0e0;
+  background: #f8f9fa;
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: #666;
+}
+
+.empty-state p {
+  margin: 0;
+  font-size: 14px;
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Project Input Section */
+.project-input-section {
+  margin-top: 12px;
+  padding: 12px;
+  background: #f8f9fa;
+  border-radius: 6px;
+  border: 1px solid #e0e0e0;
+}
+
+.project-input-container {
+  position: relative;
+  margin-bottom: 8px;
+}
+
+#projectInput {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  font-family: inherit;
+}
+
+#projectInput:focus {
+  outline: none;
+  border-color: #4285f4;
+  box-shadow: 0 0 0 2px rgba(66, 133, 244, 0.2);
+}
+
+/* Autocomplete Dropdown */
+.autocomplete-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #ddd;
+  border-top: none;
+  border-radius: 0 0 4px 4px;
+  max-height: 150px;
+  overflow-y: auto;
+  z-index: 1000;
+  display: none;
+}
+
+.autocomplete-dropdown.show {
+  display: block;
+}
+
+.autocomplete-item {
+  padding: 8px 12px;
+  cursor: pointer;
+  border-bottom: 1px solid #f0f0f0;
+  font-size: 13px;
+}
+
+.autocomplete-item:hover {
+  background: #f0f8ff;
+}
+
+.autocomplete-item.highlighted {
+  background: #e3f2fd;
+}
+
+.autocomplete-item:last-child {
+  border-bottom: none;
+}
+
+.autocomplete-item.create-new {
+  color: #4285f4;
+  font-weight: 500;
+}
+
+.autocomplete-item.create-new:before {
+  content: "+ ";
+}
+
+/* Project Input Actions */
+.project-input-actions {
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+.btn-small {
+  padding: 6px 12px;
+  font-size: 12px;
+}
+
+/* Selected Project Display */
+.selected-project {
+  display: inline-flex;
+  align-items: center;
+  background: #e3f2fd;
+  color: #1976d2;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  margin-top: 8px;
+}
+
+.selected-project .remove-project {
+  margin-left: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  color: #666;
+}
+
+.selected-project .remove-project:hover {
+  color: #d32f2f;
+}
+
+.btn.project-selected {
+  background: #e3f2fd;
+  color: #1976d2;
+  border-color: #1976d2;
+}
+
+/* Footer */
+.footer {
+  margin-top: 8px;
+  margin-bottom: 8px;
+  /* padding-top: 20px; */
+  text-align: center;
+}
+
+.attribution {
+  color: #666;
+  font-size: 12px;
+}
