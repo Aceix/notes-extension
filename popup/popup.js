@@ -108,9 +108,9 @@ class NotesManager {
       .addEventListener("click", () => this.closeModal());
 
     // Projects Management
-    document
-      .getElementById("refreshProjects")
-      .addEventListener("click", () => this.renderProjects());
+    // document
+    //   .getElementById("refreshProjects")
+    //   .addEventListener("click", () => this.renderProjects());
 
     // Event delegation for dynamically created note buttons
     document.getElementById("notesList").addEventListener("click", (e) => {

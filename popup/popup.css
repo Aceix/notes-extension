@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap');
+
 /* Global Styles */
 * {
   margin: 0;
@@ -6,8 +8,9 @@
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: 'Plus Jakarta Sans', 'Segoe UI', Roboto, sans-serif;
   font-size: 14px;
+  font-optical-sizing: auto;
   color: #333;
   background: #f8f9fa;
 }
@@ -168,6 +171,15 @@ body {
 #saveNoteBtn {
   background: linear-gradient(90deg, rgba(177, 111, 70, 1), rgba(75, 30, 58, 1));
   color: white;
+}
+
+#updateNote {
+  background: linear-gradient(90deg, rgba(177, 111, 70, 0.8), rgba(75, 30, 58, 0.8));
+  color: white;
+}
+
+#updateNote:hover {
+  outline: 1px solid rgba(66, 133, 244, 0.2);
 }
 
 #tagInput {

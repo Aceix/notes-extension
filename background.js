@@ -3,12 +3,12 @@ chrome.runtime.onInstalled.addListener(() => {
   console.log('Notes extension installed');
   
   // Initialize default storage if needed
-  chrome.storage.local.get(['notes', 'tags'], (result) => {
+  chrome.storage.local.get(['notes', 'projects'], (result) => {
     if (!result.notes) {
       chrome.storage.local.set({ notes: [] });
     }
-    if (!result.tags) {
-      chrome.storage.local.set({ tags: [] });
+    if (!result.projects) {
+      chrome.storage.local.set({ projects: [] });
     }
   });
 });

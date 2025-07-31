@@ -1,24 +1,24 @@
 # Quick Notes - Chrome Extension
 
-A powerful and intuitive note-taking Chrome extension that allows you to quickly capture, organize, and manage your thoughts with tagging support.
+A powerful and intuitive note-taking Chrome extension that allows you to quickly capture, organize, and manage your thoughts with project support.
 
 ## Features
 
 ### Core Functionality
 - 📝 **Quick Note Taking**: Instantly create notes with a simple interface
-- 🏷️ **Tagging System**: Organize notes with custom tags
+- 🏷️ **Project System**: Organize notes with custom projects
 - ✏️ **Edit & Delete**: Full CRUD operations for your notes
 - 💾 **Persistent Storage**: All notes are saved locally using Chrome's storage API
-- 🔍 **Search & Filter**: Find notes quickly with text search and tag filtering
+- 🔍 **Search & Filter**: Find notes quickly with text search and project filtering
 
 ### Two Main Screens
 1. **Notes Screen**: View all notes, create new ones, search and filter
-2. **Tags Screen**: Manage all your tags, see usage statistics, and delete unused tags
+2. **Projects Screen**: Manage all your projects, see usage statistics, and delete unused projects
 
 ### User Interface
 - Clean and modern design
 - Responsive layout optimized for the extension popup
-- Intuitive navigation between notes and tags
+- Intuitive navigation between notes and projects
 - Modal-based editing interface
 - Real-time search and filtering
 
@@ -40,20 +40,20 @@ A powerful and intuitive note-taking Chrome extension that allows you to quickly
 ### Creating Notes
 1. Click the extension icon in your Chrome toolbar
 2. Type your note in the text area
-3. Add tags (comma-separated) if desired
+3. Add projects (comma-separated) if desired
 4. Click "Save Note" or press Ctrl+Enter
 
 ### Managing Notes
-- **Edit**: Click the "Edit" button on any note to modify its content and tags
+- **Edit**: Click the "Edit" button on any note to modify its content and projects
 - **Delete**: Click the "Delete" button to remove a note (with confirmation)
-- **Search**: Use the search box to find notes by content or tags
-- **Filter**: Use the tag dropdown to filter notes by specific tags
+- **Search**: Use the search box to find notes by content or projects
+- **Filter**: Use the project dropdown to filter notes by specific projects
 
-### Managing Tags
-1. Switch to the "Tags" tab
-2. View all tags with their usage counts
-3. Delete tags (removes them from all notes)
-4. Tags are automatically cleaned up when no longer used
+### Managing Projects
+1. Switch to the "Projects" tab
+2. View all projects with their usage counts
+3. Delete projects (removes them from all notes)
+4. Projects are automatically cleaned up when no longer used
 
 ## File Structure
 
@@ -79,7 +79,7 @@ notes-extension/
 - All data remains on the user's local machine
 
 ### Permissions
-- `storage`: For saving notes and tags locally
+- `storage`: For saving notes and projects locally
 - `unlimitedStorage`: To allow large amounts of note data
 
 ### Browser Compatibility
@@ -93,15 +93,15 @@ notes-extension/
 {
   id: timestamp,           // Unique identifier
   content: string,         // Note text content
-  tags: array,            // Array of tag strings
+  projects: array,         // Array of project strings
   createdAt: ISO_string,  // Creation timestamp
   updatedAt: ISO_string   // Last modification timestamp
 }
 ```
 
-### Tags Structure
+### Projects Structure
 ```javascript
-// Simple array of unique tag strings
+// Simple array of unique project strings
 ["work", "personal", "ideas", "todo"]
 ```
 
@@ -133,7 +133,7 @@ This project is open source and available under the MIT License.
 ### Version 1.0.0
 - Initial release
 - Basic note creation, editing, and deletion
-- Tag management system
+- Project management system
 - Search and filter functionality
-- Two-screen interface (Notes and Tags)
+- Two-screen interface (Notes and Projects)
 - Local storage persistence
