@@ -1,4 +1,4 @@
-# Quick Notes - Chrome Extension
+# Jotta Note - Chrome Extension
 
 A powerful and intuitive note-taking Chrome extension that allows you to quickly capture, organize, and manage your thoughts with project support.
 

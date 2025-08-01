@@ -1,12 +1,12 @@
 {
   "manifest_version": 3,
-  "name": "Quick Notes",
+  "name": "Jotta Note",
   "version": "1.0.0",
-  "description": "A simple note-taking extension with tagging",
+  "description": "A simple note-taking extension with project grouping",
   "permissions": ["storage", "unlimitedStorage"],
   "action": {
     "default_popup": "popup/popup.html",
-    "default_title": "Quick Notes",
+    "default_title": "Jotta Note",
     "default_icon": {
       "16": "icon16.png",
       "48": "icon48.png",
