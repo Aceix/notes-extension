@@ -8,6 +8,7 @@ class NotesManager {
     this.selectedProject = null;
     this.autocompleteIndex = -1;
     this.currentView = "add"; // 'add' or 'list'
+    this.currentEditor = null; // Track which editor is currently active
 
     this.init();
   }
@@ -15,6 +16,7 @@ class NotesManager {
   async init() {
     await this.loadData();
     this.setupEventListeners();
+    this.setupRichTextEditor();
     this.updateProjectFilter();
 
     // Start in add note view
@@ -22,6 +24,324 @@ class NotesManager {
 
     // Only render projects initially
     this.renderProjects();
+  }
+
+  // Rich Text Editor Setup
+  setupRichTextEditor() {
+    // Setup main editor
+    const mainEditor = document.getElementById("noteInput");
+    this.setupEditorInstance(mainEditor);
+
+    // Setup modal editor
+    const modalEditor = document.getElementById("editNoteText");
+    this.setupEditorInstance(modalEditor);
+
+    // Setup toolbar event listeners
+    this.setupToolbarListeners();
+  }
+
+  setupEditorInstance(editor) {
+    if (!editor) return;
+
+    // Handle keyboard shortcuts
+    editor.addEventListener("keydown", (e) => {
+      // Ctrl+Enter to save (for main editor)
+      if (e.ctrlKey && e.key === "Enter" && editor.id === "noteInput") {
+        e.preventDefault();
+        this.saveNote();
+        return;
+      }
+
+      // Handle common formatting shortcuts
+      if (e.ctrlKey) {
+        switch (e.key.toLowerCase()) {
+          case "b":
+            e.preventDefault();
+            this.executeCommand("bold");
+            break;
+          case "i":
+            e.preventDefault();
+            this.executeCommand("italic");
+            break;
+          case "u":
+            e.preventDefault();
+            this.executeCommand("underline");
+            break;
+          case "`":
+            e.preventDefault();
+            this.executeCommand("code");
+            break;
+          case "k":
+            e.preventDefault();
+            this.executeCommand("createLink");
+            break;
+        }
+      }
+    });
+
+    // Track focus for toolbar updates
+    editor.addEventListener("focus", () => {
+      this.currentEditor = editor;
+      this.updateToolbarState();
+    });
+
+    editor.addEventListener("mouseup", () => {
+      if (this.currentEditor === editor) {
+        this.updateToolbarState();
+      }
+    });
+
+    editor.addEventListener("keyup", () => {
+      if (this.currentEditor === editor) {
+        this.updateToolbarState();
+      }
+    });
+  }
+
+  setupToolbarListeners() {
+    // Setup main toolbar
+    const mainToolbar = document.querySelector(".rich-text-toolbar:not(.modal-toolbar)");
+    if (mainToolbar) {
+      this.setupToolbarInstance(mainToolbar, document.getElementById("noteInput"));
+    }
+
+    // Setup modal toolbar
+    const modalToolbar = document.querySelector(".modal-toolbar");
+    if (modalToolbar) {
+      this.setupToolbarInstance(modalToolbar, document.getElementById("editNoteText"));
+    }
+  }
+
+  setupToolbarInstance(toolbar, editor) {
+    if (!toolbar || !editor) return;
+
+    toolbar.addEventListener("click", (e) => {
+      const btn = e.target.closest(".toolbar-btn");
+      if (!btn) return;
+
+      e.preventDefault();
+      
+      // Set current editor
+      this.currentEditor = editor;
+      
+      const command = btn.dataset.command;
+      this.executeCommand(command);
+      
+      // Focus back to editor
+      editor.focus();
+      
+      // Update toolbar state
+      setTimeout(() => this.updateToolbarState(), 10);
+    });
+  }
+
+  executeCommand(command) {
+    if (!this.currentEditor) return;
+
+    // Focus the editor first
+    this.currentEditor.focus();
+
+    try {
+      // Handle custom commands
+      if (command === "code") {
+        this.insertInlineCode();
+      } else if (command === "codeBlock") {
+        this.insertCodeBlock();
+      } else if (command === "createLink") {
+        this.insertLink();
+      } else {
+        // Standard document commands
+        document.execCommand(command, false, null);
+      }
+    } catch (e) {
+      console.warn("Command execution failed:", command, e);
+    }
+  }
+
+  // Custom formatting methods
+  insertInlineCode() {
+    const selection = window.getSelection();
+    if (selection.rangeCount === 0) return;
+
+    const range = selection.getRangeAt(0);
+    const selectedText = range.toString();
+
+    if (selectedText) {
+      // Wrap selected text in code tags
+      const codeElement = document.createElement("code");
+      codeElement.textContent = selectedText;
+      range.deleteContents();
+      range.insertNode(codeElement);
+      
+      // Move cursor after the code element
+      range.setStartAfter(codeElement);
+      range.setEndAfter(codeElement);
+      selection.removeAllRanges();
+      selection.addRange(range);
+    } else {
+      // Insert empty code tags with cursor inside
+      const codeElement = document.createElement("code");
+      codeElement.textContent = "code";
+      range.insertNode(codeElement);
+      
+      // Select the placeholder text
+      range.selectNodeContents(codeElement);
+      selection.removeAllRanges();
+      selection.addRange(range);
+    }
+  }
+
+  insertCodeBlock() {
+    const selection = window.getSelection();
+    if (selection.rangeCount === 0) return;
+
+    const range = selection.getRangeAt(0);
+    const selectedText = range.toString();
+
+    // Create pre > code structure
+    const preElement = document.createElement("pre");
+    const codeElement = document.createElement("code");
+    
+    codeElement.textContent = selectedText || "// Your code here";
+    preElement.appendChild(codeElement);
+
+    // Insert the code block
+    if (selectedText) {
+      range.deleteContents();
+    }
+    range.insertNode(preElement);
+    
+    // Add a paragraph after the code block for continued typing
+    const p = document.createElement("p");
+    p.innerHTML = "&nbsp;";
+    preElement.parentNode.insertBefore(p, preElement.nextSibling);
+    
+    // Select the code content
+    range.selectNodeContents(codeElement);
+    selection.removeAllRanges();
+    selection.addRange(range);
+  }
+
+  insertLink() {
+    const selection = window.getSelection();
+    if (selection.rangeCount === 0) return;
+
+    const range = selection.getRangeAt(0);
+    const selectedText = range.toString();
+
+    // Prompt for URL
+    const url = prompt("Enter the URL:", "https://");
+    if (!url || url === "https://") return;
+
+    // Create link element
+    const linkElement = document.createElement("a");
+    linkElement.href = url;
+    linkElement.textContent = selectedText || url;
+    linkElement.target = "_blank"; // Open in new tab
+    linkElement.rel = "noopener noreferrer"; // Security
+
+    if (selectedText) {
+      range.deleteContents();
+    }
+    range.insertNode(linkElement);
+    
+    // Move cursor after the link
+    range.setStartAfter(linkElement);
+    range.setEndAfter(linkElement);
+    selection.removeAllRanges();
+    selection.addRange(range);
+  }
+
+  updateToolbarState() {
+    if (!this.currentEditor) return;
+
+    // Find the appropriate toolbar for the current editor
+    let toolbar;
+    if (this.currentEditor.id === "noteInput") {
+      toolbar = document.querySelector(".rich-text-toolbar:not(.modal-toolbar)");
+    } else if (this.currentEditor.id === "editNoteText") {
+      toolbar = document.querySelector(".modal-toolbar");
+    }
+
+    if (!toolbar) return;
+
+    const commands = ["bold", "italic", "underline", "insertUnorderedList", "insertOrderedList"];
+    
+    commands.forEach(command => {
+      const btn = toolbar.querySelector(`[data-command="${command}"]`);
+      if (btn) {
+        const isActive = document.queryCommandState(command);
+        btn.classList.toggle("active", isActive);
+      }
+    });
+
+    // Handle custom commands that don't have queryCommandState support
+    const selection = window.getSelection();
+    if (selection.rangeCount > 0) {
+      const range = selection.getRangeAt(0);
+      const container = range.commonAncestorContainer;
+      const element = container.nodeType === Node.TEXT_NODE ? container.parentElement : container;
+      
+      // Check for code formatting
+      const codeBtn = toolbar.querySelector('[data-command="code"]');
+      if (codeBtn) {
+        const isInCode = element.closest('code') !== null;
+        codeBtn.classList.toggle("active", isInCode);
+      }
+      
+      // Check for code block formatting
+      const codeBlockBtn = toolbar.querySelector('[data-command="codeBlock"]');
+      if (codeBlockBtn) {
+        const isInCodeBlock = element.closest('pre') !== null;
+        codeBlockBtn.classList.toggle("active", isInCodeBlock);
+      }
+      
+      // Check for link formatting
+      const linkBtn = toolbar.querySelector('[data-command="createLink"]');
+      if (linkBtn) {
+        const isInLink = element.closest('a') !== null;
+        linkBtn.classList.toggle("active", isInLink);
+      }
+    }
+  }
+
+  // Get rich text content from editor
+  getEditorContent(editor) {
+    if (!editor) return "";
+    return editor.innerHTML.trim();
+  }
+
+  // Set rich text content to editor
+  setEditorContent(editor, content) {
+    if (!editor) return;
+    
+    // If content is plain text (legacy notes), wrap in paragraph
+    if (content && !content.includes("<") && !content.includes(">")) {
+      // Convert plain text to HTML, preserving line breaks
+      const lines = content.split('\n').filter(line => line.trim());
+      if (lines.length > 1) {
+        // Multiple lines - wrap each in a paragraph
+        const htmlContent = lines.map(line => `<p>${this.escapeHtml(line)}</p>`).join('');
+        editor.innerHTML = htmlContent;
+      } else if (lines.length === 1) {
+        // Single line - just wrap in paragraph
+        editor.innerHTML = `<p>${this.escapeHtml(lines[0])}</p>`;
+      } else {
+        // Empty content
+        editor.innerHTML = "";
+      }
+    } else {
+      // Already HTML content or empty
+      editor.innerHTML = content || "";
+    }
+  }
+
+  // Convert rich text to plain text for search
+  stripHtml(html) {
+    if (!html) return "";
+    const temp = document.createElement("div");
+    temp.innerHTML = html;
+    return temp.textContent || temp.innerText || "";
   }
 
   // Data Management
@@ -55,11 +375,15 @@ class NotesManager {
     document
       .getElementById("saveNoteBtn")
       .addEventListener("click", () => this.saveNote());
-    document.getElementById("noteInput").addEventListener("keydown", (e) => {
-      if (e.ctrlKey && e.key === "Enter") {
-        this.saveNote();
-      }
-    });
+    
+    const noteInput = document.getElementById("noteInput");
+    if (noteInput) {
+      noteInput.addEventListener("keydown", (e) => {
+        if (e.ctrlKey && e.key === "Enter") {
+          this.saveNote();
+        }
+      });
+    }
 
     // Project Input Management
     document.getElementById("addProjectBtn").addEventListener("click", (e) => {
@@ -211,9 +535,11 @@ class NotesManager {
     document.getElementById("addNoteView").classList.add("active");
     this.currentView = "add";
 
-    // Focus on textarea
+    // Focus on rich text editor
     setTimeout(() => {
-      document.getElementById("noteInput").focus();
+      const noteInput = document.getElementById("noteInput");
+      noteInput.focus();
+      this.currentEditor = noteInput;
     }, 100);
   }
 
@@ -233,7 +559,9 @@ class NotesManager {
 
   // Note Management
   async saveNote() {
-    const noteText = document.getElementById("noteInput").value.trim();
+    const noteEditor = document.getElementById("noteInput");
+    const noteContent = this.getEditorContent(noteEditor);
+    const noteText = this.stripHtml(noteContent).trim();
 
     if (!noteText) {
       alert("Please enter a note");
@@ -244,7 +572,7 @@ class NotesManager {
 
     const note = {
       id: Date.now(),
-      content: noteText,
+      content: noteContent, // Store rich HTML content
       projects: projects,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -256,7 +584,7 @@ class NotesManager {
     await this.saveData();
 
     // Clear form
-    document.getElementById("noteInput").value = "";
+    this.setEditorContent(noteEditor, "");
     this.clearSelectedProject();
 
     this.renderNotes();
@@ -427,22 +755,31 @@ class NotesManager {
     if (!note) return;
 
     this.currentEditingNote = note;
-    document.getElementById("editNoteText").value = note.content;
+    const editNoteText = document.getElementById("editNoteText");
+    this.setEditorContent(editNoteText, note.content);
     document.getElementById("editNoteProjects").value =
       note.projects?.join(", ") ?? "";
 
     document.getElementById("editModal").classList.add("active");
+    
+    // Focus the editor after modal is shown
+    setTimeout(() => {
+      editNoteText.focus();
+      this.currentEditor = editNoteText;
+    }, 100);
   }
 
   async updateNote() {
     if (!this.currentEditingNote) return;
 
-    const newContent = document.getElementById("editNoteText").value.trim();
+    const editNoteText = document.getElementById("editNoteText");
+    const newContent = this.getEditorContent(editNoteText);
+    const newContentText = this.stripHtml(newContent).trim();
     const newProjectsText = document
       .getElementById("editNoteProjects")
       .value.trim();
 
-    if (!newContent) {
+    if (!newContentText) {
       alert("Please enter note content");
       return;
     }
@@ -459,7 +796,7 @@ class NotesManager {
       (n) => n.id === this.currentEditingNote.id
     );
     if (noteIndex !== -1) {
-      this.notes[noteIndex].content = newContent;
+      this.notes[noteIndex].content = newContent; // Store rich HTML content
       this.notes[noteIndex].projects = newProjects;
       this.notes[noteIndex].updatedAt = new Date().toISOString();
     }
@@ -535,11 +872,13 @@ class NotesManager {
     // Apply search filter
     if (searchTerm) {
       filteredNotes = filteredNotes.filter(
-        (note) =>
-          note.content.toLowerCase().includes(searchTerm) ||
-          note.projects.some((project) =>
-            project.toLowerCase().includes(searchTerm)
-          )
+        (note) => {
+          const plainTextContent = this.stripHtml(note.content).toLowerCase();
+          return plainTextContent.includes(searchTerm) ||
+            note.projects.some((project) =>
+              project.toLowerCase().includes(searchTerm)
+            );
+        }
       );
     }
 
@@ -567,7 +906,7 @@ class NotesManager {
       .map(
         (note) => `
       <div class="note-item" data-id="${note.id}">
-        <div class="note-content">${this.escapeHtml(note.content)}</div>
+        <div class="note-content">${this.renderNoteContent(note.content)}</div>
         <div class="note-footer">
           <div class="note-project">
             ${
@@ -678,6 +1017,26 @@ class NotesManager {
     if (this.currentView === "list") {
       this.renderNotes();
     }
+  }
+
+  // Safely render note content for display
+  renderNoteContent(content) {
+    if (!content) return "";
+    
+    // If it's plain text (legacy notes), escape and wrap in paragraphs
+    if (!content.includes("<") && !content.includes(">")) {
+      const lines = content.split('\n').filter(line => line.trim());
+      if (lines.length > 1) {
+        return lines.map(line => `<p>${this.escapeHtml(line)}</p>`).join('');
+      } else if (lines.length === 1) {
+        return `<p>${this.escapeHtml(lines[0])}</p>`;
+      }
+      return "";
+    }
+    
+    // Already HTML content - return as is (it should be safe since we generated it)
+    // Make sure links open in new tabs for security
+    return content.replace(/<a /g, '<a target="_blank" rel="noopener noreferrer" ');
   }
 
   // Utility Functions
