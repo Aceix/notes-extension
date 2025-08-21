@@ -113,7 +113,10 @@
           <!-- Project/Tag Input (initially hidden) -->
           <div id="projectInputSection" class="project-input-section" style="display: none;">
             <div class="project-input-container">
-              <input type="text" id="projectInput" placeholder="Type project name..." autocomplete="off">
+              <input type="text" id="projectInput" placeholder="Type project name..." autocomplete="off"
+                aria-label="Project name">
+              <input type="color" id="projectColor" value="#4285F4" title="Project color" aria-label="Project color"
+                style="display: none;">
               <div id="projectAutocomplete" class="autocomplete-dropdown"></div>
             </div>
             <div class="project-input-actions">
@@ -128,7 +131,7 @@
       <div id="notesListView" class="view">
         <!-- Search and Filter -->
         <div class="search-section">
-          <input type="text" id="searchInput" placeholder="Search notes...">
+          <input type="text" id="searchInput" placeholder="Search notes..." aria-label="Search notes">
           <select id="projectFilter">
             <option value="">All projects</option>
           </select>
@@ -231,7 +234,7 @@
             aria-multiline="true">
           </div>
 
-          <input type="text" id="editNoteProjects" placeholder="Projects (comma-separated)">
+          <input type="text" id="editNoteProjects" placeholder="Projects (comma-separated)" aria-label="Projects">
         </div>
         <div class="modal-footer">
           <button id="updateNote" class="btn btn-primary">Update</button>

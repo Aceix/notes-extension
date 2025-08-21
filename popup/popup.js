@@ -3,9 +3,9 @@
 class NotesManager {
   constructor() {
     this.notes = [];
-    this.projects = [];
+    this.projects = []; // Now an array of objects: { name: string, color: string }
     this.currentEditingNote = null;
-    this.selectedProject = null;
+    this.selectedProject = null; // Now an object: { name: string, color: string }
     this.autocompleteIndex = -1;
     this.currentView = "add"; // 'add' or 'list'
     this.currentEditor = null; // Track which editor is currently active
@@ -100,15 +100,23 @@ class NotesManager {
 
   setupToolbarListeners() {
     // Setup main toolbar
-    const mainToolbar = document.querySelector(".rich-text-toolbar:not(.modal-toolbar)");
+    const mainToolbar = document.querySelector(
+      ".rich-text-toolbar:not(.modal-toolbar)"
+    );
     if (mainToolbar) {
-      this.setupToolbarInstance(mainToolbar, document.getElementById("noteInput"));
+      this.setupToolbarInstance(
+        mainToolbar,
+        document.getElementById("noteInput")
+      );
     }
 
     // Setup modal toolbar
     const modalToolbar = document.querySelector(".modal-toolbar");
     if (modalToolbar) {
-      this.setupToolbarInstance(modalToolbar, document.getElementById("editNoteText"));
+      this.setupToolbarInstance(
+        modalToolbar,
+        document.getElementById("editNoteText")
+      );
     }
   }
 
@@ -120,16 +128,16 @@ class NotesManager {
       if (!btn) return;
 
       e.preventDefault();
-      
+
       // Set current editor
       this.currentEditor = editor;
-      
+
       const command = btn.dataset.command;
       this.executeCommand(command);
-      
+
       // Focus back to editor
       editor.focus();
-      
+
       // Update toolbar state
       setTimeout(() => this.updateToolbarState(), 10);
     });
@@ -172,7 +180,7 @@ class NotesManager {
       codeElement.textContent = selectedText;
       range.deleteContents();
       range.insertNode(codeElement);
-      
+
       // Move cursor after the code element
       range.setStartAfter(codeElement);
       range.setEndAfter(codeElement);
@@ -183,7 +191,7 @@ class NotesManager {
       const codeElement = document.createElement("code");
       codeElement.textContent = "code";
       range.insertNode(codeElement);
-      
+
       // Select the placeholder text
       range.selectNodeContents(codeElement);
       selection.removeAllRanges();
@@ -201,7 +209,7 @@ class NotesManager {
     // Create pre > code structure
     const preElement = document.createElement("pre");
     const codeElement = document.createElement("code");
-    
+
     codeElement.textContent = selectedText || "// Your code here";
     preElement.appendChild(codeElement);
 
@@ -210,12 +218,12 @@ class NotesManager {
       range.deleteContents();
     }
     range.insertNode(preElement);
-    
+
     // Add a paragraph after the code block for continued typing
     const p = document.createElement("p");
     p.innerHTML = "&nbsp;";
     preElement.parentNode.insertBefore(p, preElement.nextSibling);
-    
+
     // Select the code content
     range.selectNodeContents(codeElement);
     selection.removeAllRanges();
@@ -244,7 +252,7 @@ class NotesManager {
       range.deleteContents();
     }
     range.insertNode(linkElement);
-    
+
     // Move cursor after the link
     range.setStartAfter(linkElement);
     range.setEndAfter(linkElement);
@@ -258,16 +266,24 @@ class NotesManager {
     // Find the appropriate toolbar for the current editor
     let toolbar;
     if (this.currentEditor.id === "noteInput") {
-      toolbar = document.querySelector(".rich-text-toolbar:not(.modal-toolbar)");
+      toolbar = document.querySelector(
+        ".rich-text-toolbar:not(.modal-toolbar)"
+      );
     } else if (this.currentEditor.id === "editNoteText") {
       toolbar = document.querySelector(".modal-toolbar");
     }
 
     if (!toolbar) return;
 
-    const commands = ["bold", "italic", "underline", "insertUnorderedList", "insertOrderedList"];
-    
-    commands.forEach(command => {
+    const commands = [
+      "bold",
+      "italic",
+      "underline",
+      "insertUnorderedList",
+      "insertOrderedList",
+    ];
+
+    commands.forEach((command) => {
       const btn = toolbar.querySelector(`[data-command="${command}"]`);
       if (btn) {
         const isActive = document.queryCommandState(command);
@@ -280,26 +296,29 @@ class NotesManager {
     if (selection.rangeCount > 0) {
       const range = selection.getRangeAt(0);
       const container = range.commonAncestorContainer;
-      const element = container.nodeType === Node.TEXT_NODE ? container.parentElement : container;
-      
+      const element =
+        container.nodeType === Node.TEXT_NODE
+          ? container.parentElement
+          : container;
+
       // Check for code formatting
       const codeBtn = toolbar.querySelector('[data-command="code"]');
       if (codeBtn) {
-        const isInCode = element.closest('code') !== null;
+        const isInCode = element.closest("code") !== null;
         codeBtn.classList.toggle("active", isInCode);
       }
-      
+
       // Check for code block formatting
       const codeBlockBtn = toolbar.querySelector('[data-command="codeBlock"]');
       if (codeBlockBtn) {
-        const isInCodeBlock = element.closest('pre') !== null;
+        const isInCodeBlock = element.closest("pre") !== null;
         codeBlockBtn.classList.toggle("active", isInCodeBlock);
       }
-      
+
       // Check for link formatting
       const linkBtn = toolbar.querySelector('[data-command="createLink"]');
       if (linkBtn) {
-        const isInLink = element.closest('a') !== null;
+        const isInLink = element.closest("a") !== null;
         linkBtn.classList.toggle("active", isInLink);
       }
     }
@@ -314,14 +333,16 @@ class NotesManager {
   // Set rich text content to editor
   setEditorContent(editor, content) {
     if (!editor) return;
-    
+
     // If content is plain text (legacy notes), wrap in paragraph
     if (content && !content.includes("<") && !content.includes(">")) {
       // Convert plain text to HTML, preserving line breaks
-      const lines = content.split('\n').filter(line => line.trim());
+      const lines = content.split("\n").filter((line) => line.trim());
       if (lines.length > 1) {
         // Multiple lines - wrap each in a paragraph
-        const htmlContent = lines.map(line => `<p>${this.escapeHtml(line)}</p>`).join('');
+        const htmlContent = lines
+          .map((line) => `<p>${this.escapeHtml(line)}</p>`)
+          .join("");
         editor.innerHTML = htmlContent;
       } else if (lines.length === 1) {
         // Single line - just wrap in paragraph
@@ -348,7 +369,19 @@ class NotesManager {
   async loadData() {
     const result = await chrome.storage.local.get(["notes", "projects"]);
     this.notes = result.notes || [];
-    this.projects = result.projects || [];
+
+    // Migration for project structure
+    const projects = result.projects || [];
+    if (projects.length > 0 && typeof projects[0] === "string") {
+      // Old format: array of strings. Convert to new format.
+      this.projects = projects.map((name) => ({
+        name,
+        color: getRandomColor(),
+      }));
+      await this.saveData(); // Save the migrated data
+    } else {
+      this.projects = projects;
+    }
   }
 
   async saveData() {
@@ -375,7 +408,7 @@ class NotesManager {
     document
       .getElementById("saveNoteBtn")
       .addEventListener("click", () => this.saveNote());
-    
+
     const noteInput = document.getElementById("noteInput");
     if (noteInput) {
       noteInput.addEventListener("keydown", (e) => {
@@ -568,7 +601,7 @@ class NotesManager {
       return;
     }
 
-    const projects = this.selectedProject ? [this.selectedProject] : [];
+    const projects = this.selectedProject ? [this.selectedProject.name] : [];
 
     const note = {
       id: Date.now(),
@@ -579,7 +612,9 @@ class NotesManager {
     };
 
     this.notes.unshift(note);
-    this.updateProjectsList(projects);
+    if (this.selectedProject) {
+      this.updateProjectsList([this.selectedProject]);
+    }
 
     await this.saveData();
 
@@ -599,7 +634,9 @@ class NotesManager {
   showProjectInput() {
     const projectSection = document.getElementById("projectInputSection");
     const projectInput = document.getElementById("projectInput");
+    const projectColor = document.getElementById("projectColor");
 
+    projectColor.value = getRandomColor();
     projectSection.style.display = "block";
     projectInput.focus();
     // this.updateAutocomplete('');
@@ -609,19 +646,30 @@ class NotesManager {
     const projectSection = document.getElementById("projectInputSection");
     const projectInput = document.getElementById("projectInput");
     const autocomplete = document.getElementById("projectAutocomplete");
+    const colorInput = document.getElementById("projectColor");
 
     projectSection.style.display = "none";
     projectInput.value = "";
+    colorInput.style.display = "none";
     autocomplete.classList.remove("show");
     this.autocompleteIndex = -1;
   }
 
   confirmProject() {
     const projectInput = document.getElementById("projectInput");
+    const colorInput = document.getElementById("projectColor");
     const projectName = projectInput.value.trim();
 
     if (projectName) {
-      this.selectedProject = projectName;
+      const existingProject = this.projects.find(
+        (p) => p.name.toLowerCase() === projectName.toLowerCase()
+      );
+      if (existingProject) {
+        this.selectedProject = existingProject;
+      } else {
+        this.selectedProject = { name: projectName, color: colorInput.value };
+      }
+
       this.hideProjectInput();
       this.showSelectedProject();
 
@@ -635,8 +683,15 @@ class NotesManager {
 
     if (this.selectedProject) {
       addProjectBtn.innerHTML = `
-        <span class="selected-project">
-          ${this.escapeHtml(this.selectedProject)}
+        <span class="selected-project" style="background-color: ${
+          this.selectedProject.color
+        }20; color: ${this.selectedProject.color}; border-color: ${
+        this.selectedProject.color
+      }80;">
+          <span class="project-color-dot" style="background-color: ${
+            this.selectedProject.color
+          };"></span>
+          ${this.escapeHtml(this.selectedProject.name)}
           <span class="remove-project" data-action="remove-project">&times;</span>
         </span>
       `;
@@ -655,6 +710,12 @@ class NotesManager {
     const input = e.target.value;
     this.updateAutocomplete(input);
     this.autocompleteIndex = -1;
+
+    const colorInput = document.getElementById("projectColor");
+    const isNewProject = !this.projects.some(
+      (p) => p.name.toLowerCase() === input.toLowerCase()
+    );
+    colorInput.style.display = isNewProject && input ? "block" : "none";
   }
 
   handleProjectKeydown(e) {
@@ -696,13 +757,14 @@ class NotesManager {
       item.dataset.project || item.textContent.replace("+ ", "");
 
     projectInput.value = projectName;
+    this.handleProjectInput({ target: projectInput }); // Trigger update for color picker
     this.confirmProject();
   }
 
   updateAutocomplete(input) {
     const autocomplete = document.getElementById("projectAutocomplete");
     const filteredProjects = this.projects.filter((project) =>
-      project.toLowerCase().includes(input.toLowerCase())
+      project.name.toLowerCase().includes(input.toLowerCase())
     );
 
     let html = "";
@@ -710,12 +772,15 @@ class NotesManager {
     // Show existing projects that match
     filteredProjects.forEach((project) => {
       html += `<div class="autocomplete-item" data-project="${this.escapeHtml(
-        project
-      )}">${this.escapeHtml(project)}</div>`;
+        project.name
+      )}">${this.escapeHtml(project.name)}</div>`;
     });
 
     // Show "Create new" option if input doesn't exactly match any existing project
-    if (input && !this.projects.includes(input)) {
+    if (
+      input &&
+      !this.projects.some((p) => p.name.toLowerCase() === input.toLowerCase())
+    ) {
       html += `<div class="autocomplete-item create-new" data-project="${this.escapeHtml(
         input
       )}">Create "${this.escapeHtml(input)}"</div>`;
@@ -761,7 +826,7 @@ class NotesManager {
       note.projects?.join(", ") ?? "";
 
     document.getElementById("editModal").classList.add("active");
-    
+
     // Focus the editor after modal is shown
     setTimeout(() => {
       editNoteText.focus();
@@ -791,6 +856,11 @@ class NotesManager {
           .filter((project) => project)
       : [];
 
+    const newProjectObjects = newProjects.map((name) => {
+      const existing = this.projects.find((p) => p.name === name);
+      return existing || { name, color: getRandomColor() };
+    });
+
     // Update the note
     const noteIndex = this.notes.findIndex(
       (n) => n.id === this.currentEditingNote.id
@@ -801,7 +871,7 @@ class NotesManager {
       this.notes[noteIndex].updatedAt = new Date().toISOString();
     }
 
-    this.updateProjectsList(newProjects);
+    this.updateProjectsList(newProjectObjects);
     await this.saveData();
 
     this.closeModal();
@@ -818,16 +888,22 @@ class NotesManager {
   }
 
   // Project Management
-  updateProjectsList(noteProjects) {
-    noteProjects.forEach((project) => {
-      if (!this.projects.includes(project)) {
-        this.projects.push(project);
+  updateProjectsList(newProjectObjects) {
+    newProjectObjects.forEach((projectObj) => {
+      if (!this.projects.some((p) => p.name === projectObj.name)) {
+        this.projects.push(projectObj);
       }
     });
 
     // Clean up unused projects
+    const allNoteProjects = new Set(
+      [].concat.apply(
+        [],
+        this.notes.map((note) => note.projects)
+      )
+    );
     this.projects = this.projects.filter((project) =>
-      this.notes.some((note) => note.projects.includes(project))
+      allNoteProjects.has(project.name)
     );
   }
 
@@ -847,7 +923,7 @@ class NotesManager {
 
       // Remove from projects list
       this.projects = this.projects.filter(
-        (project) => project !== projectName
+        (project) => project.name !== projectName
       );
 
       await this.saveData();
@@ -871,15 +947,15 @@ class NotesManager {
 
     // Apply search filter
     if (searchTerm) {
-      filteredNotes = filteredNotes.filter(
-        (note) => {
-          const plainTextContent = this.stripHtml(note.content).toLowerCase();
-          return plainTextContent.includes(searchTerm) ||
-            note.projects.some((project) =>
-              project.toLowerCase().includes(searchTerm)
-            );
-        }
-      );
+      filteredNotes = filteredNotes.filter((note) => {
+        const plainTextContent = this.stripHtml(note.content).toLowerCase();
+        return (
+          plainTextContent.includes(searchTerm) ||
+          note.projects.some((project) =>
+            project.toLowerCase().includes(searchTerm)
+          )
+        );
+      });
     }
 
     // Apply project filter
@@ -903,12 +979,25 @@ class NotesManager {
     }
 
     notesList.innerHTML = filteredNotes
-      .map(
-        (note) => `
+      .map((note) => {
+        const project =
+          note.projects?.length > 0
+            ? this.projects.find((p) => p.name === note.projects[0])
+            : null;
+        return `
       <div class="note-item" data-id="${note.id}">
         <div class="note-content">${this.renderNoteContent(note.content)}</div>
         <div class="note-footer">
-          <div class="note-project">
+          <div class="note-project" ${
+            project
+              ? `style="background-color: ${project.color}20; border-color: ${project.color}80;"`
+              : ""
+          }>
+            ${
+              project
+                ? `<span class="project-color-dot" style="background-color: ${project.color};"></span>`
+                : ""
+            }
             ${
               note.projects?.length > 0
                 ? this.escapeHtml(note.projects[0])
@@ -937,8 +1026,8 @@ class NotesManager {
           </div>
         </div>
       </div>
-    `
-      )
+    `;
+      })
       .join("");
   }
 
@@ -957,30 +1046,32 @@ class NotesManager {
     // Sort projects by usage count
     const projectCounts = {};
     this.notes.forEach((note) => {
-      note.projects?.forEach((project) => {
-        projectCounts[project] = (projectCounts[project] || 0) + 1;
+      note.projects?.forEach((projectName) => {
+        projectCounts[projectName] = (projectCounts[projectName] || 0) + 1;
       });
     });
 
-    const sortedProjects = this.projects.sort(
-      (a, b) => (projectCounts[b] || 0) - (projectCounts[a] || 0)
+    const sortedProjects = [...this.projects].sort(
+      (a, b) => (projectCounts[b.name] || 0) - (projectCounts[a.name] || 0)
     );
 
     projectsList.innerHTML = sortedProjects
       .map(
         (project) => `
-      <div class="project-card" data-project="${this.escapeHtml(project)}">
+      <div class="project-card" data-project="${this.escapeHtml(
+        project.name
+      )}" style="border-left-color: ${project.color};">
         <div class="project-content">
-          <div class="project-name">${this.escapeHtml(project)}</div>
+          <div class="project-name">${this.escapeHtml(project.name)}</div>
           <div class="project-stats">${
-            projectCounts[project] === 1
+            projectCounts[project.name] === 1
               ? "1 note"
-              : `${projectCounts[project] || 0} notes`
+              : `${projectCounts[project.name] || 0} notes`
           }</div>
         </div>
         <div class="project-actions">
           <button class="delete-btn" data-project="${this.escapeHtml(
-            project
+            project.name
           )}" title="Delete project">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <polyline points="3,6 5,6 21,6"></polyline>
@@ -998,45 +1089,47 @@ class NotesManager {
 
   updateProjectFilter() {
     const projectFilter = document.getElementById("projectFilter");
-    const currentValue = projectFilter.value;
+    const currentVal = projectFilter.value;
 
-    projectFilter.innerHTML = '<option value="">All projects</option>';
-
-    this.projects.forEach((project) => {
-      const option = document.createElement("option");
-      option.value = project;
-      option.textContent = project;
-      if (project === currentValue) {
-        option.selected = true;
-      }
-      projectFilter.appendChild(option);
-    });
-  }
-
-  filterNotes() {
-    if (this.currentView === "list") {
-      this.renderNotes();
-    }
+    projectFilter.innerHTML = `
+      <option value="">All projects</option>
+      ${this.projects
+        .map(
+          (project) =>
+            `<option value="${this.escapeHtml(project.name)}">${this.escapeHtml(
+              project.name
+            )}</option>`
+        )
+        .join("")}
+    `;
+    projectFilter.value = currentVal;
   }
 
   // Safely render note content for display
   renderNoteContent(content) {
     if (!content) return "";
-    
+
     // If it's plain text (legacy notes), escape and wrap in paragraphs
     if (!content.includes("<") && !content.includes(">")) {
-      const lines = content.split('\n').filter(line => line.trim());
+      const lines = content.split("\n").filter((line) => line.trim());
       if (lines.length > 1) {
-        return lines.map(line => `<p>${this.escapeHtml(line)}</p>`).join('');
+        return lines.map((line) => `<p>${this.escapeHtml(line)}</p>`).join("");
       } else if (lines.length === 1) {
         return `<p>${this.escapeHtml(lines[0])}</p>`;
       }
       return "";
     }
-    
+
     // Already HTML content - return as is (it should be safe since we generated it)
     // Make sure links open in new tabs for security
-    return content.replace(/<a /g, '<a target="_blank" rel="noopener noreferrer" ');
+    return content.replace(
+      /<a /g,
+      '<a target="_blank" rel="noopener noreferrer" '
+    );
+  }
+
+  filterNotes() {
+    this.renderNotes();
   }
 
   // Utility Functions
@@ -1100,8 +1193,16 @@ class NotesManager {
   }
 }
 
-// Initialize the notes manager when the popup loads
-let notesManager;
+// Initialize the application
 document.addEventListener("DOMContentLoaded", () => {
-  notesManager = new NotesManager();
+  new NotesManager();
 });
+
+function getRandomColor() {
+  const letters = "0123456789ABCDEF";
+  let color = "#";
+  for (let i = 0; i < 6; i++) {
+    color += letters[Math.floor(Math.random() * 16)];
+  }
+  return color;
+}
