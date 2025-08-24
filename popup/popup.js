@@ -448,10 +448,17 @@ class NotesManager {
     // Search and Filter
     const searchInput = document.getElementById("searchInput");
     const projectFilter = document.getElementById("projectFilter");
-    if (searchInput)
+    const clearFilterBtn = document.getElementById("clearFilterBtn");
+
+    if (searchInput) {
       searchInput.addEventListener("input", () => this.filterNotes());
-    if (projectFilter)
+    }
+    if (projectFilter) {
       projectFilter.addEventListener("change", () => this.filterNotes());
+    }
+    if (clearFilterBtn) {
+      clearFilterBtn.addEventListener("click", () => this.clearFilters());
+    }
 
     // Modal
     document
@@ -494,15 +501,24 @@ class NotesManager {
       }
     });
 
-    // Event delegation for project delete buttons
+    // Event delegation for project clicks
     document.getElementById("projectsList").addEventListener("click", (e) => {
-      if (
-        e.target.closest(".delete-btn") &&
-        e.target.closest(".project-card")
-      ) {
+      const projectCard = e.target.closest(".project-card");
+      if (!projectCard) return;
+
+      // Handle delete button click
+      if (e.target.closest(".delete-btn")) {
         const deleteBtn = e.target.closest(".delete-btn");
         const projectName = deleteBtn.dataset.project;
         this.deleteProject(projectName);
+      } else {
+        // Handle project card click to filter notes
+        const projectName = projectCard.dataset.project;
+        if (projectName) {
+          document.getElementById("projectFilter").value = projectName;
+          this.switchTab("notes");
+          this.showNotesListView();
+        }
       }
     });
 
@@ -583,6 +599,7 @@ class NotesManager {
     document.getElementById("notesListView").classList.add("active");
     this.currentView = "list";
     this.renderNotes();
+    this.updateClearButtonVisibility();
   }
 
   goToNewNoteScreen() {
@@ -628,6 +645,27 @@ class NotesManager {
     // Show success feedback and switch to list view
     this.showNotification("Note saved successfully!");
     this.showNotesListView();
+  }
+
+  clearFilters() {
+    document.getElementById("searchInput").value = "";
+    document.getElementById("projectFilter").value = "";
+    this.filterNotes();
+  }
+
+  updateClearButtonVisibility() {
+    const searchInput = document.getElementById("searchInput");
+    const projectFilter = document.getElementById("projectFilter");
+    const clearFilterBtn = document.getElementById("clearFilterBtn");
+
+    const isSearchActive = searchInput.value.trim() !== "";
+    const isFilterActive = projectFilter.value !== "";
+
+    if (isSearchActive || isFilterActive) {
+      clearFilterBtn.style.display = "flex";
+    } else {
+      clearFilterBtn.style.display = "none";
+    }
   }
 
   // Project Input Management
@@ -1130,6 +1168,7 @@ class NotesManager {
 
   filterNotes() {
     this.renderNotes();
+    this.updateClearButtonVisibility();
   }
 
   // Utility Functions

@@ -573,14 +573,41 @@ html, body {
   color: #999;
 }
 
+.select-wrapper {
+  position: relative;
+}
+
+.select-wrapper::after {
+  content: "▼";
+  font-size: 1rem;
+  top: 50%;
+  transform: translateY(-60%) scale(0.8);
+  right: 12px;
+  position: absolute;
+}
+
+#clearFilterBtn {
+  /* margin-right: 12px; */
+  font-weight: 100;
+  color: #dc3545;
+  font-size: 2rem;
+  height: 40px !important;
+  width: 40px !important;
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+
 #projectFilter {
   padding: 12px;
+  padding-right: 26px;
   border: none;
   border-radius: 12px;
   font-size: 14px;
   background: #f5f7fa;
   color: #666;
   cursor: pointer;
+  appearance: none;
 }
 
 #projectFilter:focus {
