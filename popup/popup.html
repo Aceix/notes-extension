@@ -91,6 +91,13 @@
                   d="M680-160v-120H560v-80h120v-120h80v120h120v80H760v120h-80ZM440-280H280q-83 0-141.5-58.5T80-480q0-83 58.5-141.5T280-680h160v80H280q-50 0-85 35t-35 85q0 50 35 85t85 35h160v80ZM320-440v-80h320v80H320Zm560-40h-80q0-50-35-85t-85-35H520v-80h160q83 0 141.5 58.5T880-480Z" />
               </svg>
             </button>
+            <button type="button" class="toolbar-btn" data-command="insertImage" title="Insert Image">
+              <svg xmlns="http://www.w3.org/2000/svg" height="16px" viewBox="0 -960 960 960" width="16px"
+                fill="#1f1f1f">
+                <path
+                  d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h560q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H200Zm0-80h560v-560H200v560Zm80-80h400L538-480l-98 130-60-80-100 150Zm-80 80v-560 560Z" />
+              </svg>
+            </button>
           </div>
 
           <!-- Rich Text Editor -->
@@ -232,6 +239,13 @@
                   d="M680-160v-120H560v-80h120v-120h80v120h120v80H760v120h-80ZM440-280H280q-83 0-141.5-58.5T80-480q0-83 58.5-141.5T280-680h160v80H280q-50 0-85 35t-35 85q0 50 35 85t85 35h160v80ZM320-440v-80h320v80H320Zm560-40h-80q0-50-35-85t-85-35H520v-80h160q83 0 141.5 58.5T880-480Z" />
               </svg>
             </button>
+            <button type="button" class="toolbar-btn" data-command="insertImage" title="Insert Image">
+              <svg xmlns="http://www.w3.org/2000/svg" height="16px" viewBox="0 -960 960 960" width="16px"
+                fill="#1f1f1f">
+                <path
+                  d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h560q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H200Zm0-80h560v-560H200v560Zm80-80h400L538-480l-98 130-60-80-100 150Zm-80 80v-560 560Z" />
+              </svg>
+            </button>
           </div>
 
           <!-- Rich Text Editor for Modal -->
@@ -244,6 +258,32 @@
         <div class="modal-footer">
           <button id="updateNote" class="btn btn-primary">Update</button>
           <button id="cancelEdit" class="btn btn-secondary">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Image Insert Modal -->
+    <div id="imageModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>Insert Image</h3>
+          <span class="close" id="closeImageModal">&times;</span>
+        </div>
+        <div class="modal-body">
+          <div class="image-source-tabs">
+            <button class="tab-btn active" data-tab="url">From URL</button>
+            <button class="tab-btn" data-tab="upload">Upload</button>
+          </div>
+          <div id="imageUrlTab" class="tab-content active">
+            <input type="text" id="imageUrlInput" placeholder="Enter image URL" aria-label="Image URL">
+          </div>
+          <div id="imageUploadTab" class="tab-content">
+            <input type="file" id="imageFileInput" accept="image/*" aria-label="Image file">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button id="insertImageBtn" class="btn btn-primary">Insert</button>
+          <button id="cancelImageBtn" class="btn btn-secondary">Cancel</button>
         </div>
       </div>
     </div>

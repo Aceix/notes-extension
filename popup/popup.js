@@ -157,6 +157,8 @@ class NotesManager {
         this.insertCodeBlock();
       } else if (command === "createLink") {
         this.insertLink();
+      } else if (command === "insertImage") {
+        this.openImageModal();
       } else {
         // Standard document commands
         document.execCommand(command, false, null);
@@ -258,6 +260,53 @@ class NotesManager {
     range.setEndAfter(linkElement);
     selection.removeAllRanges();
     selection.addRange(range);
+  }
+
+  // Image Insertion Logic
+  openImageModal() {
+    if (!this.currentEditor) return;
+    document.getElementById("imageModal").classList.add("active");
+  }
+
+  closeImageModal() {
+    document.getElementById("imageModal").classList.remove("active");
+    document.getElementById("imageUrlInput").value = "";
+    document.getElementById("imageFileInput").value = "";
+  }
+
+  insertImage(src) {
+    if (!this.currentEditor || !src) return;
+
+    this.currentEditor.focus();
+    const img = `<img src="${src}" alt="User inserted image" style="max-width: 100%; height: auto; display: block;">`;
+    document.execCommand("insertHTML", false, img);
+    this.closeImageModal();
+  }
+
+  handleImageInsert() {
+    const activeTab = document.querySelector(".image-source-tabs .tab-btn.active").dataset.tab;
+
+    if (activeTab === "url") {
+      const imageUrl = document.getElementById("imageUrlInput").value.trim();
+      if (imageUrl) {
+        this.insertImage(imageUrl);
+      } else {
+        alert("Please enter an image URL.");
+      }
+    } else if (activeTab === "upload") {
+      const fileInput = document.getElementById("imageFileInput");
+      const file = fileInput.files[0];
+
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          this.insertImage(e.target.result);
+        };
+        reader.readAsDataURL(file);
+      } else {
+        alert("Please select an image file.");
+      }
+    }
   }
 
   updateToolbarState() {
@@ -471,6 +520,21 @@ class NotesManager {
       .querySelector(".close")
       .addEventListener("click", () => this.closeModal());
 
+    // Image Modal
+    document.getElementById("closeImageModal").addEventListener("click", () => this.closeImageModal());
+    document.getElementById("cancelImageBtn").addEventListener("click", () => this.closeImageModal());
+    document.getElementById("insertImageBtn").addEventListener("click", () => this.handleImageInsert());
+    document.querySelectorAll(".image-source-tabs .tab-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".image-source-tabs .tab-btn").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+
+        document.querySelectorAll(".tab-content").forEach(content => content.classList.remove("active"));
+        document.getElementById(btn.dataset.tab === "url" ? "imageUrlTab" : "imageUploadTab").classList.add("active");
+      });
+    });
+
+
     // Projects Management
     // document
     //   .getElementById("refreshProjects")
@@ -526,6 +590,12 @@ class NotesManager {
     document.getElementById("editModal").addEventListener("click", (e) => {
       if (e.target.id === "editModal") {
         this.closeModal();
+      }
+    });
+
+    document.getElementById("imageModal").addEventListener("click", (e) => {
+      if (e.target.id === "imageModal") {
+        this.closeImageModal();
       }
     });
 
