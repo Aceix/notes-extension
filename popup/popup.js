@@ -18,6 +18,7 @@ class NotesManager {
     this.setupEventListeners();
     this.setupRichTextEditor();
     this.updateProjectFilter();
+    this.setupEmojiPickers();
 
     // Start in add note view
     this.showAddNoteView();
@@ -38,6 +39,175 @@ class NotesManager {
 
     // Setup toolbar event listeners
     this.setupToolbarListeners();
+  }
+
+  setupEditorInstance(editor) {
+    if (!editor) return;
+
+    // Handle keyboard shortcuts
+    editor.addEventListener("keydown", (e) => {
+      // Ctrl+Enter to save (for main editor)
+      if (e.ctrlKey && e.key === "Enter" && editor.id === "noteInput") {
+        e.preventDefault();
+        this.saveNote();
+        return;
+      }
+
+      // Handle common formatting shortcuts
+      if (e.ctrlKey) {
+        switch (e.key.toLowerCase()) {
+          case "b":
+            e.preventDefault();
+            this.executeCommand("bold");
+            break;
+          case "i":
+            e.preventDefault();
+            this.executeCommand("italic");
+            break;
+          case "u":
+            e.preventDefault();
+            this.executeCommand("underline");
+            break;
+          case "`":
+            e.preventDefault();
+            this.executeCommand("code");
+            break;
+          case "k":
+            e.preventDefault();
+            this.executeCommand("createLink");
+            break;
+        }
+      }
+    });
+
+    // Track focus for toolbar updates
+    editor.addEventListener("focus", () => {
+      this.currentEditor = editor;
+      this.updateToolbarState();
+    });
+
+    editor.addEventListener("mouseup", () => {
+      if (this.currentEditor === editor) {
+        this.updateToolbarState();
+      }
+    });
+
+    editor.addEventListener("keyup", () => {
+      if (this.currentEditor === editor) {
+        this.updateToolbarState();
+      }
+    });
+  }
+
+  setupToolbarListeners() {
+    // Setup main toolbar
+    const mainToolbar = document.querySelector(
+      ".rich-text-toolbar:not(.modal-toolbar)"
+    );
+    if (mainToolbar) {
+      this.setupToolbarInstance(
+        mainToolbar,
+        document.getElementById("noteInput")
+      );
+    }
+
+    // Setup modal toolbar
+    const modalToolbar = document.querySelector(".modal-toolbar");
+    if (modalToolbar) {
+      this.setupToolbarInstance(
+        modalToolbar,
+        document.getElementById("editNoteText")
+      );
+    }
+  }
+
+  setupToolbarInstance(toolbar, editor) {
+    if (!toolbar || !editor) return;
+
+    toolbar.addEventListener("click", (e) => {
+      const btn = e.target.closest(".toolbar-btn");
+      if (!btn) return;
+
+      e.preventDefault();
+
+      // Set current editor
+      this.currentEditor = editor;
+
+      const command = btn.dataset.command;
+      this.executeCommand(command);
+
+      // Focus back to editor
+      editor.focus();
+
+      // Update toolbar state
+      setTimeout(() => this.updateToolbarState(), 10);
+    });
+  }
+
+  setupEmojiPickers() {
+    // Main editor
+    const emojiBtn = document.getElementById("emoji-btn");
+    const emojiPickerContainer = document.getElementById("emojiPickerContainer");
+    const emojiPicker = emojiPickerContainer.querySelector("emoji-picker");
+
+    emojiBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      emojiPickerContainer.style.display =
+        emojiPickerContainer.style.display === "none" ? "block" : "none";
+    });
+
+    if (emojiPicker) {
+      emojiPicker.addEventListener("emoji-click", (event) => {
+        this.insertEmoji(event.detail.unicode);
+        emojiPickerContainer.style.display = "none";
+      });
+    }
+
+    // Modal editor
+    const emojiBtnModal = document.getElementById("emoji-btn-modal");
+    const emojiPickerContainerModal = document.getElementById(
+      "emojiPickerContainerModal"
+    );
+    const emojiPickerModal =
+      emojiPickerContainerModal.querySelector("emoji-picker");
+
+    emojiBtnModal.addEventListener("click", (e) => {
+      e.stopPropagation();
+      emojiPickerContainerModal.style.display =
+        emojiPickerContainerModal.style.display === "none" ? "block" : "none";
+    });
+
+    if (emojiPickerModal) {
+      emojiPickerModal.addEventListener("emoji-click", (event) => {
+        this.insertEmoji(event.detail.unicode);
+        emojiPickerContainerModal.style.display = "none";
+      });
+    }
+
+    // Hide picker when clicking outside
+    document.addEventListener("click", (e) => {
+      if (
+        emojiPickerContainer.style.display === "block" &&
+        !emojiPickerContainer.contains(e.target) &&
+        e.target !== emojiBtn
+      ) {
+        emojiPickerContainer.style.display = "none";
+      }
+      if (
+        emojiPickerContainerModal.style.display === "block" &&
+        !emojiPickerContainerModal.contains(e.target) &&
+        e.target !== emojiBtnModal
+      ) {
+        emojiPickerContainerModal.style.display = "none";
+      }
+    });
+  }
+
+  insertEmoji(emoji) {
+    if (!this.currentEditor) return;
+
+    this.currentEditor.focus();
+    document.execCommand("insertText", false, emoji);
   }
 
   setupEditorInstance(editor) {
