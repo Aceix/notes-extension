@@ -1441,7 +1441,7 @@ class NotesManager {
       position: fixed;
       top: 20px;
       right: 20px;
-      background: #4285f4;
+      background: #D1622B;
       color: white;
       padding: 12px 20px;
       border-radius: 4px;

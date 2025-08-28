@@ -120,8 +120,8 @@ body {
 
 .nav-btn.active {
   /* background: white; */
-  color: #4285f4;
-  border-color: #4285f4;
+  color: #d1622b;
+  border-color: #d1622b;
 }
 
 /* Screens */
@@ -248,8 +248,8 @@ body {
 }
 
 .rich-text-editor:focus {
-  border-color: #4285f4;
-  box-shadow: 0 0 0 2px rgba(66, 133, 244, 0.2);
+  border-color: #d1622b;
+  box-shadow: 0 0 0 2px rgba(209, 98, 43, 0.2);
 }
 
 /* Emoji Picker */
@@ -349,7 +349,7 @@ emoji-picker {
 }
 
 .rich-text-editor a {
-  color: #0366d6;
+  color: #d1622b;
   text-decoration: none;
 }
 
@@ -377,14 +377,14 @@ emoji-picker {
 
 #noteInput:focus {
   outline: none;
-  border-color: #4285f4;
-  box-shadow: 0 0 0 2px rgba(66, 133, 244, 0.2);
+  border-color: #d1622b;
+  box-shadow: 0 0 0 2px rgba(209, 98, 43, 0.2);
 }
 
 #noteInput:focus {
   outline: none;
-  border-color: #4285f4;
-  box-shadow: 0 0 0 2px rgba(66, 133, 244, 0.2);
+  border-color: #d1622b;
+  box-shadow: 0 0 0 2px rgba(209, 98, 43, 0.2);
 }
 
 .note-controls {
@@ -435,7 +435,7 @@ emoji-picker {
 }
 
 #updateNote:hover {
-  outline: 1px solid rgba(66, 133, 244, 0.2);
+  outline: 1px solid rgba(209, 98, 43, 0.2);
 }
 
 #tagInput {
@@ -448,7 +448,7 @@ emoji-picker {
 
 #tagInput:focus {
   outline: none;
-  border-color: #4285f4;
+  border-color: #d1622b;
 }
 
 /* Buttons */
@@ -464,12 +464,12 @@ emoji-picker {
 }
 
 .btn-primary {
-  background: #4285f4;
+  background: #d1622b;
   color: white;
 }
 
 .btn-primary:hover {
-  background: #3367d6;
+  background: #b85624;
 }
 
 .btn-secondary {
@@ -530,9 +530,9 @@ emoji-picker {
 
 #clearFilterBtn {
   /* margin-right: 12px; */
-  font-weight: 100;
+  /* font-weight: 100; */
   color: #dc3545;
-  font-size: 2rem;
+  /* font-size: 2rem; */
   height: 40px !important;
   width: 40px !important;
   display: none;
@@ -651,8 +651,8 @@ emoji-picker {
 }
 
 .edit-btn:hover {
-  background: rgba(66, 133, 244, 0.1);
-  color: #4285f4;
+  background: rgba(209, 98, 43, 0.1);
+  color: #d1622b;
 }
 
 .delete-btn:hover {
@@ -827,7 +827,7 @@ emoji-picker {
 .modal-body textarea:focus,
 .modal-body input:focus {
   outline: none;
-  border-color: #4285f4;
+  border-color: #d1622b;
 }
 
 .modal-footer {
@@ -863,8 +863,8 @@ emoji-picker {
 }
 
 .tab-btn.active {
-  color: #4285f4;
-  border-bottom-color: #4285f4;
+  color: #d1622b;
+  border-bottom-color: #d1622b;
   font-weight: 600;
 }
 
@@ -954,8 +954,8 @@ emoji-picker {
 
 #projectInput:focus {
   outline: none;
-  border-color: #4285f4;
-  box-shadow: 0 0 0 2px rgba(66, 133, 244, 0.2);
+  border-color: #d1622b;
+  box-shadow: 0 0 0 2px rgba(209, 98, 43, 0.2);
 }
 
 /* Autocomplete Dropdown */
@@ -986,11 +986,11 @@ emoji-picker {
 }
 
 .autocomplete-item:hover {
-  background: #f0f8ff;
+  background: #fdf8f5;
 }
 
 .autocomplete-item.highlighted {
-  background: #e3f2fd;
+  background: #fbeee7;
 }
 
 .autocomplete-item:last-child {
