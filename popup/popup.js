@@ -5,10 +5,14 @@ class NotesManager {
     this.notes = [];
     this.projects = []; // Now an array of objects: { name: string, color: string }
     this.currentEditingNote = null;
+    this.originalNoteBeforeEdit = null; // To store note state on edit
     this.selectedProject = null; // Now an object: { name: string, color: string }
     this.autocompleteIndex = -1;
     this.currentView = "add"; // 'add' or 'list'
     this.currentEditor = null; // Track which editor is currently active
+    this.autosaveTimeout = null;
+    this.currentDraftNoteId = null;
+    this.originalNoteContent = null;
 
     this.init();
   }
@@ -97,6 +101,18 @@ class NotesManager {
         this.updateToolbarState();
       }
     });
+
+    // Add input event listener for autosave
+    editor.addEventListener("input", () => {
+      clearTimeout(this.autosaveTimeout);
+      this.autosaveTimeout = setTimeout(() => {
+        if (editor.id === "noteInput") {
+          this.autosaveDraft();
+        } else if (editor.id === "editNoteText") {
+          this.autosaveUpdate();
+        }
+      }, 2000);
+    });
   }
 
   setupToolbarListeners() {
@@ -147,7 +163,9 @@ class NotesManager {
   setupEmojiPickers() {
     // Main editor
     const emojiBtn = document.getElementById("emoji-btn");
-    const emojiPickerContainer = document.getElementById("emojiPickerContainer");
+    const emojiPickerContainer = document.getElementById(
+      "emojiPickerContainer"
+    );
     const emojiPicker = emojiPickerContainer.querySelector("emoji-picker");
 
     emojiBtn.addEventListener("click", (e) => {
@@ -265,6 +283,18 @@ class NotesManager {
       if (this.currentEditor === editor) {
         this.updateToolbarState();
       }
+    });
+
+    // Add input event listener for autosave
+    editor.addEventListener("input", () => {
+      clearTimeout(this.autosaveTimeout);
+      this.autosaveTimeout = setTimeout(() => {
+        if (editor.id === "noteInput") {
+          this.autosaveDraft();
+        } else if (editor.id === "editNoteText") {
+          this.autosaveUpdate();
+        }
+      }, 2000);
     });
   }
 
@@ -454,7 +484,9 @@ class NotesManager {
   }
 
   handleImageInsert() {
-    const activeTab = document.querySelector(".image-source-tabs .tab-btn.active").dataset.tab;
+    const activeTab = document.querySelector(
+      ".image-source-tabs .tab-btn.active"
+    ).dataset.tab;
 
     if (activeTab === "url") {
       const imageUrl = document.getElementById("imageUrlInput").value.trim();
@@ -610,6 +642,65 @@ class NotesManager {
     });
   }
 
+  handleAutocompleteClick(e) {
+    if (e.target.classList.contains("autocomplete-item")) {
+      this.selectAutocompleteItem(e.target);
+    }
+  }
+
+  selectAutocompleteItem(item) {
+    const projectInput = document.getElementById("projectInput");
+    const projectName =
+      item.dataset.project || item.textContent.replace("+ ", "");
+
+    projectInput.value = projectName;
+    this.handleProjectInput({ target: projectInput }); // Trigger update for color picker
+    this.confirmProject();
+  }
+
+  updateAutocomplete(input) {
+    const autocomplete = document.getElementById("projectAutocomplete");
+    const filteredProjects = this.projects.filter((project) =>
+      project.name.toLowerCase().includes(input.toLowerCase())
+    );
+
+    let html = "";
+
+    // Show existing projects that match
+    filteredProjects.forEach((project) => {
+      html += `<div class="autocomplete-item" data-project="${this.escapeHtml(
+        project.name
+      )}">${this.escapeHtml(project.name)}</div>`;
+    });
+
+    // Show "Create new" option if input doesn't exactly match any existing project
+    if (
+      input &&
+      !this.projects.some((p) => p.name.toLowerCase() === input.toLowerCase())
+    ) {
+      html += `<div class="autocomplete-item create-new" data-project="${this.escapeHtml(
+        input
+      )}">Create "${this.escapeHtml(input)}"</div>`;
+    }
+
+    autocomplete.innerHTML = html;
+
+    if (html) {
+      autocomplete.classList.add("show");
+    } else {
+      autocomplete.classList.remove("show");
+    }
+  }
+
+  highlightAutocompleteItem() {
+    const items = document.querySelectorAll(".autocomplete-item");
+    items.forEach((item) => item.classList.remove("highlighted"));
+
+    if (this.autocompleteIndex >= 0 && items[this.autocompleteIndex]) {
+      items[this.autocompleteIndex].classList.add("highlighted");
+    }
+  }
+
   // Event Listeners
   setupEventListeners() {
     // Navigation
@@ -685,25 +776,38 @@ class NotesManager {
       .addEventListener("click", () => this.updateNote());
     document
       .getElementById("cancelEdit")
-      .addEventListener("click", () => this.closeModal());
+      .addEventListener("click", () => this.cancelEdit());
     document
       .querySelector(".close")
-      .addEventListener("click", () => this.closeModal());
+      .addEventListener("click", () => this.cancelEdit());
 
     // Image Modal
-    document.getElementById("closeImageModal").addEventListener("click", () => this.closeImageModal());
-    document.getElementById("cancelImageBtn").addEventListener("click", () => this.closeImageModal());
-    document.getElementById("insertImageBtn").addEventListener("click", () => this.handleImageInsert());
-    document.querySelectorAll(".image-source-tabs .tab-btn").forEach(btn => {
+    document
+      .getElementById("closeImageModal")
+      .addEventListener("click", () => this.closeImageModal());
+    document
+      .getElementById("cancelImageBtn")
+      .addEventListener("click", () => this.closeImageModal());
+    document
+      .getElementById("insertImageBtn")
+      .addEventListener("click", () => this.handleImageInsert());
+    document.querySelectorAll(".image-source-tabs .tab-btn").forEach((btn) => {
       btn.addEventListener("click", () => {
-        document.querySelectorAll(".image-source-tabs .tab-btn").forEach(b => b.classList.remove("active"));
+        document
+          .querySelectorAll(".image-source-tabs .tab-btn")
+          .forEach((b) => b.classList.remove("active"));
         btn.classList.add("active");
 
-        document.querySelectorAll(".tab-content").forEach(content => content.classList.remove("active"));
-        document.getElementById(btn.dataset.tab === "url" ? "imageUrlTab" : "imageUploadTab").classList.add("active");
+        document
+          .querySelectorAll(".tab-content")
+          .forEach((content) => content.classList.remove("active"));
+        document
+          .getElementById(
+            btn.dataset.tab === "url" ? "imageUrlTab" : "imageUploadTab"
+          )
+          .classList.add("active");
       });
     });
-
 
     // Projects Management
     // document
@@ -722,6 +826,9 @@ class NotesManager {
       else if (e.target.closest(".delete-btn")) {
         const deleteBtn = e.target.closest(".delete-btn");
         const noteId = parseInt(deleteBtn.dataset.id.replace("delete-", ""));
+        if (noteId === this.currentDraftNoteId) {
+          this.currentDraftNoteId = null;
+        }
         this.deleteNote(noteId);
       }
       // Handle note item click for editing (but not when clicking action buttons)
@@ -759,7 +866,7 @@ class NotesManager {
     // Close modal when clicking outside
     document.getElementById("editModal").addEventListener("click", (e) => {
       if (e.target.id === "editModal") {
-        this.closeModal();
+        this.cancelEdit();
       }
     });
 
@@ -823,6 +930,7 @@ class NotesManager {
       .forEach((view) => view.classList.remove("active"));
     document.getElementById("addNoteView").classList.add("active");
     this.currentView = "add";
+    this.currentDraftNoteId = null; // Reset draft note on view change
 
     // Focus on rich text editor
     setTimeout(() => {
@@ -845,6 +953,7 @@ class NotesManager {
   goToNewNoteScreen() {
     this.switchTab("notes");
     this.showAddNoteView();
+    this.currentDraftNoteId = null; // Reset draft note
   }
 
   // Note Management
@@ -858,17 +967,29 @@ class NotesManager {
       return;
     }
 
-    const projects = this.selectedProject ? [this.selectedProject.name] : [];
+    if (this.currentDraftNoteId) {
+      // This is a draft being explicitly saved.
+      // The content is already saved by autosave. We just need to finalize it.
+      const note = this.notes.find((n) => n.id === this.currentDraftNoteId);
+      if (note) {
+        note.projects = this.selectedProject ? [this.selectedProject.name] : [];
+        note.updatedAt = new Date().toISOString();
+      }
+    } else {
+      // This is a new note without prior autosave.
+      const projects = this.selectedProject ? [this.selectedProject.name] : [];
 
-    const note = {
-      id: Date.now(),
-      content: noteContent, // Store rich HTML content
-      projects: projects,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
+      const note = {
+        id: Date.now(),
+        content: noteContent, // Store rich HTML content
+        projects: projects,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
 
-    this.notes.unshift(note);
+      this.notes.unshift(note);
+    }
+
     if (this.selectedProject) {
       this.updateProjectsList([this.selectedProject]);
     }
@@ -878,6 +999,7 @@ class NotesManager {
     // Clear form
     this.setEditorContent(noteEditor, "");
     this.clearSelectedProject();
+    this.currentDraftNoteId = null; // Reset draft
 
     this.renderNotes();
     this.updateProjectFilter();
@@ -885,6 +1007,64 @@ class NotesManager {
     // Show success feedback and switch to list view
     this.showNotification("Note saved successfully!");
     this.showNotesListView();
+  }
+
+  async autosaveDraft() {
+    const noteEditor = document.getElementById("noteInput");
+    const noteContent = this.getEditorContent(noteEditor);
+    const noteText = this.stripHtml(noteContent).trim();
+
+    if (!noteText) {
+      return; // Don't save empty notes
+    }
+
+    if (this.currentDraftNoteId) {
+      // Update existing draft
+      const note = this.notes.find((n) => n.id === this.currentDraftNoteId);
+      if (note) {
+        note.content = noteContent;
+        note.updatedAt = new Date().toISOString();
+        console.log("Draft updated:", this.currentDraftNoteId);
+      }
+    } else {
+      // Create new draft
+      this.currentDraftNoteId = Date.now();
+      const note = {
+        id: this.currentDraftNoteId,
+        content: noteContent,
+        projects: [], // Projects added on explicit save
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      this.notes.unshift(note);
+      console.log("Draft created:", this.currentDraftNoteId);
+    }
+
+    await this.saveData();
+    this.showNotification("Draft autosaved.", true);
+    // Do not switch views or clear form
+  }
+
+  async autosaveUpdate() {
+    if (!this.currentEditingNote) return;
+
+    const editNoteEditor = document.getElementById("editNoteText");
+    const noteContent = this.getEditorContent(editNoteEditor);
+    const noteText = this.stripHtml(noteContent).trim();
+
+    if (!noteText) {
+      // Don't save if content is cleared, let user delete it explicitly
+      return;
+    }
+
+    const note = this.notes.find((n) => n.id === this.currentEditingNote.id);
+    if (note && note.content !== noteContent) {
+      note.content = noteContent;
+      note.updatedAt = new Date().toISOString();
+      await this.saveData();
+      console.log("Note autosaved:", note.id);
+      this.showNotification("Note autosaved.", true);
+    }
   }
 
   clearFilters() {
@@ -905,6 +1085,54 @@ class NotesManager {
       clearFilterBtn.style.display = "flex";
     } else {
       clearFilterBtn.style.display = "none";
+    }
+  }
+
+  // Project Management
+  updateProjectsList(newProjectObjects) {
+    newProjectObjects.forEach((projectObj) => {
+      if (!this.projects.some((p) => p.name === projectObj.name)) {
+        this.projects.push(projectObj);
+      }
+    });
+
+    // Clean up unused projects
+    const allNoteProjects = new Set(
+      [].concat.apply(
+        [],
+        this.notes.map((note) => note.projects)
+      )
+    );
+    this.projects = this.projects.filter((project) =>
+      allNoteProjects.has(project.name)
+    );
+  }
+
+  async deleteProject(projectName) {
+    if (
+      confirm(
+        `Are you sure you want to remove the project "${projectName}" from all notes?`
+      )
+    ) {
+      // Remove project from all notes
+      this.notes.forEach((note) => {
+        note.projects = note.projects.filter(
+          (project) => project !== projectName
+        );
+        note.updatedAt = new Date().toISOString();
+      });
+
+      // Remove from projects list
+      this.projects = this.projects.filter(
+        (project) => project.name !== projectName
+      );
+
+      await this.saveData();
+      this.renderNotes();
+      this.renderProjects();
+      this.updateProjectFilter();
+
+      this.showNotification(`Project "${projectName}" removed successfully!`);
     }
   }
 
@@ -952,7 +1180,9 @@ class NotesManager {
       this.showSelectedProject();
 
       // Automatically save the note when project is selected
-      this.saveNote();
+      if (this.currentDraftNoteId) {
+        this.saveNote();
+      }
     }
   }
 
@@ -1013,63 +1243,14 @@ class NotesManager {
       this.highlightAutocompleteItem();
     } else if (e.key === "Enter") {
       e.preventDefault();
-      if (this.autocompleteIndex >= 0 && items[this.autocompleteIndex]) {
-        this.selectAutocompleteItem(items[this.autocompleteIndex]);
+      const items = autocomplete.querySelectorAll(".autocomplete-item");
+      if (this.autocompleteIndex > -1 && items[this.autocompleteIndex]) {
+        items[this.autocompleteIndex].click();
       } else {
         this.confirmProject();
       }
     } else if (e.key === "Escape") {
       this.hideProjectInput();
-    }
-  }
-
-  handleAutocompleteClick(e) {
-    if (e.target.classList.contains("autocomplete-item")) {
-      this.selectAutocompleteItem(e.target);
-    }
-  }
-
-  selectAutocompleteItem(item) {
-    const projectInput = document.getElementById("projectInput");
-    const projectName =
-      item.dataset.project || item.textContent.replace("+ ", "");
-
-    projectInput.value = projectName;
-    this.handleProjectInput({ target: projectInput }); // Trigger update for color picker
-    this.confirmProject();
-  }
-
-  updateAutocomplete(input) {
-    const autocomplete = document.getElementById("projectAutocomplete");
-    const filteredProjects = this.projects.filter((project) =>
-      project.name.toLowerCase().includes(input.toLowerCase())
-    );
-
-    let html = "";
-
-    // Show existing projects that match
-    filteredProjects.forEach((project) => {
-      html += `<div class="autocomplete-item" data-project="${this.escapeHtml(
-        project.name
-      )}">${this.escapeHtml(project.name)}</div>`;
-    });
-
-    // Show "Create new" option if input doesn't exactly match any existing project
-    if (
-      input &&
-      !this.projects.some((p) => p.name.toLowerCase() === input.toLowerCase())
-    ) {
-      html += `<div class="autocomplete-item create-new" data-project="${this.escapeHtml(
-        input
-      )}">Create "${this.escapeHtml(input)}"</div>`;
-    }
-
-    autocomplete.innerHTML = html;
-
-    if (html) {
-      autocomplete.classList.add("show");
-    } else {
-      autocomplete.classList.remove("show");
     }
   }
 
@@ -1087,102 +1268,9 @@ class NotesManager {
       this.notes = this.notes.filter((note) => note.id !== noteId);
       await this.saveData();
       this.renderNotes();
-      this.renderProjects();
       this.updateProjectFilter();
       this.showNotification("Note deleted successfully!");
     }
-  }
-
-  editNote(noteId) {
-    const note = this.notes.find((n) => n.id === noteId);
-    if (!note) return;
-
-    this.currentEditingNote = note;
-    const editNoteText = document.getElementById("editNoteText");
-    this.setEditorContent(editNoteText, note.content);
-    document.getElementById("editNoteProjects").value =
-      note.projects?.join(", ") ?? "";
-
-    document.getElementById("editModal").classList.add("active");
-
-    // Focus the editor after modal is shown
-    setTimeout(() => {
-      editNoteText.focus();
-      this.currentEditor = editNoteText;
-    }, 100);
-  }
-
-  async updateNote() {
-    if (!this.currentEditingNote) return;
-
-    const editNoteText = document.getElementById("editNoteText");
-    const newContent = this.getEditorContent(editNoteText);
-    const newContentText = this.stripHtml(newContent).trim();
-    const newProjectsText = document
-      .getElementById("editNoteProjects")
-      .value.trim();
-
-    if (!newContentText) {
-      alert("Please enter note content");
-      return;
-    }
-
-    const newProjects = newProjectsText
-      ? newProjectsText
-          .split(",")
-          .map((project) => project.trim())
-          .filter((project) => project)
-      : [];
-
-    const newProjectObjects = newProjects.map((name) => {
-      const existing = this.projects.find((p) => p.name === name);
-      return existing || { name, color: getRandomColor() };
-    });
-
-    // Update the note
-    const noteIndex = this.notes.findIndex(
-      (n) => n.id === this.currentEditingNote.id
-    );
-    if (noteIndex !== -1) {
-      this.notes[noteIndex].content = newContent; // Store rich HTML content
-      this.notes[noteIndex].projects = newProjects;
-      this.notes[noteIndex].updatedAt = new Date().toISOString();
-    }
-
-    this.updateProjectsList(newProjectObjects);
-    await this.saveData();
-
-    this.closeModal();
-    this.renderNotes();
-    this.renderProjects();
-    this.updateProjectFilter();
-
-    this.showNotification("Note updated successfully!");
-  }
-
-  closeModal() {
-    document.getElementById("editModal").classList.remove("active");
-    this.currentEditingNote = null;
-  }
-
-  // Project Management
-  updateProjectsList(newProjectObjects) {
-    newProjectObjects.forEach((projectObj) => {
-      if (!this.projects.some((p) => p.name === projectObj.name)) {
-        this.projects.push(projectObj);
-      }
-    });
-
-    // Clean up unused projects
-    const allNoteProjects = new Set(
-      [].concat.apply(
-        [],
-        this.notes.map((note) => note.projects)
-      )
-    );
-    this.projects = this.projects.filter((project) =>
-      allNoteProjects.has(project.name)
-    );
   }
 
   async deleteProject(projectName) {
@@ -1191,26 +1279,65 @@ class NotesManager {
         `Are you sure you want to remove the project "${projectName}" from all notes?`
       )
     ) {
+      // Remove project from the main projects list
+      this.projects = this.projects.filter((p) => p.name !== projectName);
+
       // Remove project from all notes
       this.notes.forEach((note) => {
-        note.projects = note.projects.filter(
-          (project) => project !== projectName
-        );
-        note.updatedAt = new Date().toISOString();
+        if (note.projects) {
+          note.projects = note.projects.filter((p) => p !== projectName);
+        }
       });
 
-      // Remove from projects list
-      this.projects = this.projects.filter(
-        (project) => project.name !== projectName
-      );
-
       await this.saveData();
-      this.renderNotes();
       this.renderProjects();
       this.updateProjectFilter();
-
-      this.showNotification(`Project "${projectName}" removed successfully!`);
+      this.showNotification("Project deleted successfully!");
     }
+  }
+
+  editNote(noteId) {
+    const note = this.notes.find((n) => n.id === noteId);
+    if (!note) return;
+
+    this.currentEditingNote = note;
+    this.originalNoteContent = note.content; // Store original content
+
+    const modal = document.getElementById("editModal");
+    const editNoteEditor = document.getElementById("editNoteText");
+    const editNoteProjects = document.getElementById("editNoteProjects");
+
+    this.setEditorContent(editNoteEditor, note.content);
+    editNoteProjects.value = note.projects ? note.projects.join(", ") : "";
+
+    modal.classList.add("active");
+
+    setTimeout(() => {
+      editNoteEditor.focus();
+      this.currentEditor = editNoteEditor;
+    }, 100);
+  }
+
+  async closeModal(revertChanges = false) {
+    const modal = document.getElementById("editModal");
+    modal.classList.remove("active");
+
+    // Revert autosaved changes if edit is cancelled
+    if (revertChanges && this.currentEditingNote && this.originalNoteContent) {
+      const note = this.notes.find((n) => n.id === this.currentEditingNote.id);
+      if (note && note.content !== this.originalNoteContent) {
+        note.content = this.originalNoteContent;
+        await this.saveData();
+        this.showNotification("Autosaved changes reverted.");
+      }
+    }
+
+    this.currentEditingNote = null;
+    this.originalNoteContent = null;
+  }
+
+  cancelEdit() {
+    this.closeModal(true); // Revert changes on cancel
   }
 
   // Rendering
@@ -1258,53 +1385,62 @@ class NotesManager {
 
     notesList.innerHTML = filteredNotes
       .map((note) => {
-        const project =
-          note.projects?.length > 0
-            ? this.projects.find((p) => p.name === note.projects[0])
-            : null;
+        const projectsHtml =
+          note.projects && note.projects.length > 0
+            ? note.projects
+                .map((projectName) => {
+                  const project = this.projects.find(
+                    (p) => p.name === projectName
+                  );
+                  if (!project) return ""; // Should not happen with consistent data
+                  return `
+                    <div class="note-project" style="background-color: ${
+                      project.color
+                    }20; border-color: ${project.color}80; color: ${
+                    project.color
+                  };">
+                    <span class="project-color-dot" style="background-color: ${
+                      project.color
+                    };"></span>
+                    ${this.escapeHtml(projectName)}
+                    </div>
+                  `;
+                })
+                .join("")
+            : '<div class="note-project no-project">No project</div>';
+
         return `
-      <div class="note-item" data-id="${note.id}">
-        <div class="note-content">${this.renderNoteContent(note.content)}</div>
-        <div class="note-footer">
-          <div class="note-project" ${
-            project
-              ? `style="background-color: ${project.color}20; border-color: ${project.color}80;"`
-              : ""
-          }>
-            ${
-              project
-                ? `<span class="project-color-dot" style="background-color: ${project.color};"></span>`
-                : ""
-            }
-            ${
-              note.projects?.length > 0
-                ? this.escapeHtml(note.projects[0])
-                : "No project"
-            }
-          </div>
-          <div class="note-actions">
+          <div class="note-item" data-id="${note.id}">
+          <div class="note-content">${this.renderNoteContent(
+            note.content
+          )}</div>
+          <div class="note-footer">
+            <div class="note-projects-list">
+            ${projectsHtml}
+            </div>
+            <div class="note-actions">
             <button class="edit-btn" data-id="edit-${
               note.id
             }" title="Edit note">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="m18,2 3,3v0l-9.5,9.5 -3,3h-3v-3l3,-3L18,2z"></path>
-                <path d="m15,5 3,3"></path>
+              <path d="m18,2 3,3v0l-9.5,9.5 -3,3h-3v-3l3,-3L18,2z"></path>
+              <path d="m15,5 3,3"></path>
               </svg>
             </button>
             <button class="delete-btn" data-id="delete-${
               note.id
             }" title="Delete note">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="3,6 5,6 21,6"></polyline>
-                <path d="m19,6v14a2,2 0 0,1 -2,2H7a2,2 0 0,1 -2,-2V6m3,0V4a2,2 0 0,1 2,-2h4a2,2 0 0,1 2,2v2"></path>
-                <line x1="10" y1="11" x2="10" y2="17"></line>
-                <line x1="14" y1="11" x2="14" y2="17"></line>
+              <polyline points="3,6 5,6 21,6"></polyline>
+              <path d="m19,6v14a2,2 0 0,1 -2,2H7a2,2 0 0,1 -2,-2V6m3,0V4a2,2 0 0,1 2,-2h4a2,2 0 0,1 2,2v2"></path>
+              <line x1="10" y1="11" x2="10" y2="17"></line>
+              <line x1="14" y1="11" x2="14" y2="17"></line>
               </svg>
             </button>
+            </div>
           </div>
-        </div>
-      </div>
-    `;
+          </div>
+        `;
       })
       .join("");
   }
@@ -1434,41 +1570,77 @@ class NotesManager {
     return date.toLocaleDateString();
   }
 
-  showNotification(message) {
-    // Create a simple notification
+  showNotification(message, isAutosave = false) {
     const notification = document.createElement("div");
-    notification.style.cssText = `
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      background: #D1622B;
-      color: white;
-      padding: 12px 20px;
-      border-radius: 4px;
-      font-size: 12px;
-      z-index: 10000;
-      animation: slideIn 0.3s ease;
-    `;
-    notification.textContent = message;
-
-    // Add animation keyframes
-    if (!document.getElementById("notificationStyles")) {
-      const style = document.createElement("style");
-      style.id = "notificationStyles";
-      style.textContent = `
-        @keyframes slideIn {
-          from { transform: translateX(100%); opacity: 0; }
-          to { transform: translateX(0); opacity: 1; }
-        }
-      `;
-      document.head.appendChild(style);
+    notification.classList.add("notification");
+    if (isAutosave) {
+      notification.classList.add("autosave-notification");
     }
-
+    notification.textContent = message;
     document.body.appendChild(notification);
 
     setTimeout(() => {
-      notification.remove();
-    }, 3000);
+      notification.classList.add("show");
+    }, 10);
+
+    setTimeout(
+      () => {
+        notification.classList.remove("show");
+        setTimeout(() => {
+          document.body.removeChild(notification);
+        }, 300);
+      },
+      isAutosave ? 1500 : 3000
+    );
+  }
+
+  getProjectColor(projectName) {
+    const project = this.projects.find((p) => p.name === projectName);
+    return project ? project.color : "#000000";
+  }
+
+  async updateNote() {
+    if (!this.currentEditingNote) return;
+
+    const editNoteEditor = document.getElementById("editNoteText");
+    const noteContent = this.getEditorContent(editNoteEditor);
+    const noteText = this.stripHtml(noteContent).trim();
+
+    if (!noteText) {
+      alert("Note content cannot be empty.");
+      return;
+    }
+
+    const newProjectsText = document
+      .getElementById("editNoteProjects")
+      .value.trim();
+
+    const newProjects = newProjectsText
+      ? newProjectsText
+          .split(",")
+          .map((project) => project.trim())
+          .filter((project) => project)
+      : [];
+
+    const newProjectObjects = newProjects.map((name) => {
+      const existing = this.projects.find((p) => p.name === name);
+      return existing || { name, color: getRandomColor() };
+    });
+
+    const note = this.notes.find((n) => n.id === this.currentEditingNote.id);
+    if (note) {
+      note.content = noteContent;
+      note.projects = newProjects;
+      note.updatedAt = new Date().toISOString();
+
+      this.updateProjectsList(newProjectObjects);
+      await this.saveData();
+      this.originalNoteContent = null; // Prevent revert on successful update
+      this.closeModal(false); // Close without reverting
+      this.renderNotes();
+      this.updateProjectFilter();
+      this.showNotification("Note updated successfully!");
+    }
   }
 }
 
