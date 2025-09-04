@@ -778,8 +778,12 @@ class NotesManager {
       .getElementById("cancelEdit")
       .addEventListener("click", () => this.cancelEdit());
     document
-      .querySelector(".close")
-      .addEventListener("click", () => this.cancelEdit());
+      .getElementById("editModalClose")
+      .addEventListener("click", () => {
+        this.closeModal();
+        this.renderNotes();
+        this.updateProjectFilter();
+      });
 
     // Image Modal
     document
@@ -866,7 +870,9 @@ class NotesManager {
     // Close modal when clicking outside
     document.getElementById("editModal").addEventListener("click", (e) => {
       if (e.target.id === "editModal") {
-        this.cancelEdit();
+        this.closeModal();
+        this.renderNotes();
+        this.updateProjectFilter();
       }
     });
 
