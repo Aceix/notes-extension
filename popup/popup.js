@@ -111,7 +111,7 @@ class NotesManager {
         } else if (editor.id === "editNoteText") {
           this.autosaveUpdate();
         }
-      }, 2000);
+      }, 1000);
     });
   }
 
