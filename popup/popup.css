@@ -1029,40 +1029,32 @@ emoji-picker {
 }
 
 /* Selected Project Display */
-.selected-project {
-  display: inline-flex;
-  align-items: center;
-  background: #e3f2fd;
-  color: #1976d2;
-  padding: 4px 8px;
-  border-radius: 12px;
-  font-size: 12px;
-  font-weight: 500;
-  margin-top: 8px;
-}
-
-.selected-project .remove-project {
+#addProjectBtn .remove-project {
   margin-left: 6px;
   cursor: pointer;
+  font-size: large;
   font-weight: bold;
   color: #666;
 }
 
-.selected-project .remove-project:hover {
+#addProjectBtn:hover .remove-project {
   color: #d32f2f;
 }
 
-.btn.project-selected {
-  background: #e3f2fd;
-  color: #1976d2;
-  border-color: #1976d2;
+#addProjectBtn:has(.remove-project) {
+  display: flex;
+  align-items: center;
+}
+
+#addProjectBtn:has(.remove-project):hover {
+  background: rgba(177, 111, 70, .2);
+  color: #d1622b;
 }
 
 /* Footer */
 .footer {
   margin-top: 8px;
   margin-bottom: 8px;
-  /* padding-top: 20px; */
   text-align: center;
 }
 
@@ -1442,36 +1434,6 @@ emoji-picker {
 .btn-small {
   padding: 6px 12px;
   font-size: 12px;
-}
-
-/* Selected Project Display */
-.selected-project {
-  display: inline-flex;
-  align-items: center;
-  background: #e3f2fd;
-  color: #1976d2;
-  padding: 4px 8px;
-  border-radius: 12px;
-  font-size: 12px;
-  font-weight: 500;
-  margin-top: 8px;
-}
-
-.selected-project .remove-project {
-  margin-left: 6px;
-  cursor: pointer;
-  font-weight: bold;
-  color: #666;
-}
-
-.selected-project .remove-project:hover {
-  color: #d32f2f;
-}
-
-.btn.project-selected {
-  background: #e3f2fd;
-  color: #1976d2;
-  border-color: #1976d2;
 }
 
 /* Footer */

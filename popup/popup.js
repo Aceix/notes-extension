@@ -777,13 +777,11 @@ class NotesManager {
     document
       .getElementById("cancelEdit")
       .addEventListener("click", () => this.cancelEdit());
-    document
-      .getElementById("editModalClose")
-      .addEventListener("click", () => {
-        this.closeModal();
-        this.renderNotes();
-        this.updateProjectFilter();
-      });
+    document.getElementById("editModalClose").addEventListener("click", () => {
+      this.closeModal();
+      this.renderNotes();
+      this.updateProjectFilter();
+    });
 
     // Image Modal
     document
@@ -1197,17 +1195,13 @@ class NotesManager {
 
     if (this.selectedProject) {
       addProjectBtn.innerHTML = `
-        <span class="selected-project" style="background-color: ${
-          this.selectedProject.color
-        }20; color: ${this.selectedProject.color}; border-color: ${
-        this.selectedProject.color
-      }80;">
+        <div data-action="remove-project">
           <span class="project-color-dot" style="background-color: ${
             this.selectedProject.color
           };"></span>
           ${this.escapeHtml(this.selectedProject.name)}
-          <span class="remove-project" data-action="remove-project">&times;</span>
-        </span>
+          <span class="remove-project" data-action="remove-project">x</span>
+        </div>
       `;
       addProjectBtn.classList.add("project-selected");
     }
